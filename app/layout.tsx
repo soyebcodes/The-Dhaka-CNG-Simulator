@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cha-Baan 3D",
+  title: "Cha Khor Runner",
   description:
-    "A cozy tea stall 3D experience with a physics biscuit dip mini-game.",
+    "A Bangladeshi village runner game where you dodge coffee, collect chai, and sprint through the lane.",
 };
 
 export default function RootLayout({
