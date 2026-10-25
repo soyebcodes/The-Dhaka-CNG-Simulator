@@ -17,7 +17,9 @@ type TeaUiProps = {
   score: number;
   verdict: string;
   audioEnabled: boolean;
+  radioEnabled: boolean;
   onAudioToggle: () => void;
+  onRadioToggle: () => void;
 };
 
 function Slider({
@@ -54,7 +56,9 @@ export function TeaUi({
   score,
   verdict,
   audioEnabled,
+  radioEnabled,
   onAudioToggle,
+  onRadioToggle,
 }: TeaUiProps) {
   const [isPressed, setIsPressed] = useState(false);
 
@@ -79,20 +83,29 @@ export function TeaUi({
       >
         <div className="rounded-2xl border border-white/15 bg-white/8 px-4 py-3 backdrop-blur-xl shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
           <p className="text-[0.65rem] uppercase tracking-[0.34em] text-white/65">
-            Cha-Baan 3D
+            চায়ের স্টল
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white md:text-3xl">
             Biscuit & Brew
           </h1>
         </div>
 
-        <button
-          type="button"
-          onClick={onAudioToggle}
-          className="rounded-full border border-white/15 bg-black/20 px-4 py-2 text-xs uppercase tracking-[0.18em] text-white/85 backdrop-blur-lg transition hover:bg-white/10"
-        >
-          {audioEnabled ? "Sound on" : "Sound off"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onRadioToggle}
+            className="rounded-full border border-amber-200/20 bg-amber-400/10 px-3 py-2 text-[0.6rem] uppercase tracking-[0.2em] text-amber-50 backdrop-blur-lg transition hover:bg-amber-300/15"
+          >
+            {radioEnabled ? "Radio on" : "Radio off"}
+          </button>
+          <button
+            type="button"
+            onClick={onAudioToggle}
+            className="rounded-full border border-white/15 bg-black/20 px-4 py-2 text-[0.6rem] uppercase tracking-[0.18em] text-white/85 backdrop-blur-lg transition hover:bg-white/10"
+          >
+            {audioEnabled ? "Sound on" : "Sound off"}
+          </button>
+        </div>
       </motion.div>
 
       <motion.div
@@ -139,6 +152,11 @@ export function TeaUi({
 
           <div className="mb-4 text-4xl font-semibold text-white">
             {verdict}
+          </div>
+
+          <div className="mb-4 flex items-center justify-between rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[0.6rem] uppercase tracking-[0.2em] text-white/70">
+            <span>Street meter</span>
+            <span>{Math.min(100, Math.max(20, score))}%</span>
           </div>
 
           <button

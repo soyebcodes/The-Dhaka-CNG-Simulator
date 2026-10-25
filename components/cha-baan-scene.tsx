@@ -1,6 +1,6 @@
 "use client";
 
-import { ContactShadows, OrbitControls } from "@react-three/drei";
+import { ContactShadows, OrbitControls, Text } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Bodies, Body, Engine, World } from "matter-js";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -16,11 +16,14 @@ export type TeaProfile = {
 type ChaBaanSceneProps = {
   teaProfile: TeaProfile;
   audioEnabled: boolean;
+  radioEnabled: boolean;
   dropSignal: number;
+  soundCue: number;
   onScoreChange: (score: number, verdict: string) => void;
+  onRadioToggle: () => void;
 };
 
-type BiscuitState = "idle" | "dropping" | "settled";
+type BiscuitState = "idle" | "dropping" | "settled" | "broken";
 
 function getTeaColor(profile: TeaProfile) {
   const temperatureMix = profile.aroma / 100;
@@ -40,7 +43,7 @@ function getTeaColor(profile: TeaProfile) {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-function TeaCup({ teaColor }: { teaColor: string }) {
+function TeaCup({ teaColor, isHot }: { teaColor: string; isHot: boolean }) {
   return (
     <group position={[0, 0.6, 0]}>
       <mesh castShadow position={[0, 0, 0]}>
@@ -60,6 +63,8 @@ function TeaCup({ teaColor }: { teaColor: string }) {
           color={teaColor}
           roughness={0.48}
           metalness={0.15}
+          emissive={isHot ? "#f59e0b" : "#000000"}
+          emissiveIntensity={isHot ? 0.18 : 0}
         />
       </mesh>
 
@@ -84,15 +89,15 @@ function TeaCup({ teaColor }: { teaColor: string }) {
   );
 }
 
-function SteamParticles({ active }: { active: boolean }) {
+function SteamParticles({ active, intensity }: { active: boolean; intensity: number }) {
   const groupRef = useRef<THREE.Group>(null);
 
   const particles = useMemo(
     () =>
-      Array.from({ length: 16 }, (_, index) => ({
+      Array.from({ length: 18 }, (_, index) => ({
         id: index,
-        x: (index % 4) * 0.12 - 0.22,
-        z: Math.floor(index / 4) * 0.12 - 0.22,
+        x: ((index % 6) - 2.5) * 0.13,
+        z: Math.floor(index / 6) * 0.13 - 0.2,
       })),
     [],
   );
@@ -104,24 +109,83 @@ function SteamParticles({ active }: { active: boolean }) {
 
     groupRef.current.children.forEach((mesh, index) => {
       const child = mesh as THREE.Mesh;
-      const drift = index * 0.37;
-      const phase = state.clock.elapsedTime * 0.8 + drift;
-      child.position.y = 1.2 + (phase % 1.4) * 0.75;
-      child.position.x = particles[index].x + Math.sin(phase * 2.1) * 0.08;
-      child.position.z = particles[index].z + Math.cos(phase * 1.8) * 0.08;
+      const drift = index * 0.44;
+      const phase = state.clock.elapsedTime * (0.8 + intensity * 0.5) + drift;
+      child.position.y = 1.18 + ((phase % 1.9) * 0.78);
+      child.position.x = particles[index].x + Math.sin(phase * 2.2) * 0.08;
+      child.position.z = particles[index].z + Math.cos(phase * 1.8) * 0.1;
       const material = child.material as THREE.MeshStandardMaterial;
-      material.opacity = active ? 0.45 : 0.08;
+      material.opacity = active ? 0.45 + intensity * 0.18 : 0.04;
     });
   });
 
   return (
-    <group ref={groupRef} position={[0, 0.5, 0]}>
+    <group ref={groupRef} position={[0, 0.42, 0]}>
       {particles.map(({ id, x, z }) => (
         <mesh key={id} position={[x, 1.2, z]}>
-          <sphereGeometry args={[0.08, 10, 10]} />
+          <sphereGeometry args={[0.08, 12, 12]} />
           <meshStandardMaterial color="#fce8d2" transparent opacity={0.35} />
         </mesh>
       ))}
+    </group>
+  );
+}
+
+function RadioModel({
+  isOn,
+  onToggle,
+}: {
+  isOn: boolean;
+  onToggle: () => void;
+}) {
+  const radioRef = useRef<THREE.Group>(null);
+
+  useFrame((state) => {
+    if (!radioRef.current) {
+      return;
+    }
+
+    radioRef.current.rotation.y = 0.35 + Math.sin(state.clock.elapsedTime * 1.2) * 0.18;
+    radioRef.current.position.y = 0.88 + Math.sin(state.clock.elapsedTime * 1.8) * 0.05;
+  });
+
+  return (
+    <group
+      ref={radioRef}
+      position={[2.3, 0.88, 1.25]}
+      onClick={(event) => {
+        event.stopPropagation();
+        onToggle();
+      }}
+    >
+      <mesh castShadow receiveShadow>
+        <boxGeometry args={[0.9, 0.65, 0.5]} />
+        <meshStandardMaterial
+          color={isOn ? "#f5b45a" : "#4b362f"}
+          emissive={isOn ? "#f59e0b" : "#000000"}
+          emissiveIntensity={isOn ? 0.35 : 0.05}
+        />
+      </mesh>
+      <mesh position={[0, 0.12, 0.26]} castShadow>
+        <cylinderGeometry args={[0.18, 0.18, 0.08, 30]} />
+        <meshStandardMaterial color="#1f2937" />
+      </mesh>
+      <mesh position={[0.24, 0.36, 0.27]} castShadow>
+        <cylinderGeometry args={[0.12, 0.12, 0.25, 24]} />
+        <meshStandardMaterial color="#f8d586" />
+      </mesh>
+      <mesh position={[-0.22, -0.25, 0.32]} castShadow>
+        <boxGeometry args={[0.42, 0.05, 0.12]} />
+        <meshStandardMaterial color="#facc15" emissive="#f59e0b" emissiveIntensity={isOn ? 1 : 0.2} />
+      </mesh>
+      <mesh position={[0.38, 0.55, 0]} castShadow>
+        <cylinderGeometry args={[0.04, 0.04, 0.56, 18]} />
+        <meshStandardMaterial color="#d1d5db" />
+      </mesh>
+      <mesh position={[0.38, 0.9, 0]} castShadow>
+        <sphereGeometry args={[0.08, 18, 18]} />
+        <meshStandardMaterial color="#fbbf24" emissive="#f9a8d4" emissiveIntensity={isOn ? 0.8 : 0.15} />
+      </mesh>
     </group>
   );
 }
@@ -133,7 +197,7 @@ function BiscuitPhysics({
   dropSignal: number;
   onScoreChange: (score: number, verdict: string) => void;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
   const engineRef = useRef<Engine | null>(null);
   const bodyRef = useRef<Matter.Body | null>(null);
   const startedAtRef = useRef<number | null>(null);
@@ -142,13 +206,13 @@ function BiscuitPhysics({
 
   useEffect(() => {
     const engine = Engine.create();
-    engine.gravity.y = 0.13;
+    engine.gravity.y = 0.12;
 
-    const body = Bodies.rectangle(0.4, 2.6, 0.7, 0.32, {
-      restitution: 0.18,
-      friction: 0.18,
+    const body = Bodies.rectangle(0.4, 2.8, 0.7, 0.28, {
+      restitution: 0.2,
+      friction: 0.14,
       density: 0.002,
-      frictionAir: 0.016,
+      frictionAir: 0.014,
       chamfer: { radius: 0.08 },
     });
 
@@ -168,10 +232,10 @@ function BiscuitPhysics({
     }
 
     const body = bodyRef.current;
-    Body.setPosition(body, { x: 0.35, y: 2.8 });
-    Body.setVelocity(body, { x: 0.18, y: 0.12 });
+    Body.setPosition(body, { x: 0.35, y: 2.7 });
+    Body.setVelocity(body, { x: 0.12, y: 0.22 });
     Body.setAngle(body, 0);
-    Body.setAngularVelocity(body, 0.08);
+    Body.setAngularVelocity(body, 0.12);
     startedAtRef.current = performance.now();
     resolvedRef.current = false;
     setState("dropping");
@@ -181,7 +245,7 @@ function BiscuitPhysics({
     const engine = engineRef.current;
     const body = bodyRef.current;
 
-    if (!engine || !body || !meshRef.current) {
+    if (!engine || !body || !groupRef.current) {
       return;
     }
 
@@ -190,55 +254,87 @@ function BiscuitPhysics({
     const x = body.position.x * 0.9;
     const y = 1.05 - body.position.y * 0.44;
 
-    meshRef.current.position.set(x, y, 0.7);
-    meshRef.current.rotation.set(0, 0, body.angle + Math.PI / 2);
+    groupRef.current.position.set(x, y, 0.7);
+    groupRef.current.rotation.set(0, 0, body.angle + Math.PI / 2);
 
-    const inCup =
-      body.position.y > 0.85 &&
-      body.position.y < 1.3 &&
-      Math.abs(body.position.x) < 0.72 &&
-      state === "dropping";
-
-    if (inCup && !resolvedRef.current && startedAtRef.current !== null) {
-      resolvedRef.current = true;
+    if (state === "dropping" && startedAtRef.current !== null) {
       const elapsedSeconds = (performance.now() - startedAtRef.current) / 1000;
-      let score = 0;
-      let verdict = "Too quick";
+      const inCup =
+        body.position.y > 0.82 &&
+        body.position.y < 1.35 &&
+        Math.abs(body.position.x) < 0.72;
 
-      if (elapsedSeconds < 1.6) {
-        score = 65;
-        verdict = "Crisp & cozy";
-      } else if (elapsedSeconds < 3.2) {
-        score = 100;
-        verdict = "Perfect dunk";
-      } else if (elapsedSeconds < 4.8) {
-        score = 80;
-        verdict = "Soft & soaked";
-      } else {
-        score = 55;
-        verdict = "A little too messy";
+      if (inCup && !resolvedRef.current) {
+        resolvedRef.current = true;
+        let score = 0;
+        let verdict = "Too quick";
+
+        if (elapsedSeconds < 1.4) {
+          score = 65;
+          verdict = "Crisp & cozy";
+        } else if (elapsedSeconds < 3.1) {
+          score = 100;
+          verdict = "Perfect dunk";
+        } else if (elapsedSeconds < 4.8) {
+          score = 80;
+          verdict = "Soft & soaked";
+        } else {
+          score = 35;
+          verdict = "A little too messy";
+        }
+
+        setState("settled");
+        onScoreChange(score, verdict);
       }
 
-      setState("settled");
-      onScoreChange(score, verdict);
+      if (elapsedSeconds > 4.8 && !resolvedRef.current) {
+        resolvedRef.current = true;
+        setState("broken");
+        onScoreChange(20, "Sank to the bottom");
+      }
     }
 
-    if (body.position.y > 2.2 && state === "dropping") {
+    if (body.position.y > 2.25 && (state === "settled" || state === "broken")) {
       setState("idle");
     }
   });
 
-  const dominantColor = state === "settled" ? "#d7a76f" : "#f7d7a6";
+  const dominantColor = state === "settled" ? "#d3a36a" : state === "broken" ? "#c084fc" : "#f7d7a6";
 
   return (
-    <mesh ref={meshRef} castShadow receiveShadow>
-      <boxGeometry args={[0.7, 0.18, 0.7]} />
-      <meshStandardMaterial
-        color={dominantColor}
-        roughness={0.7}
-        metalness={0.12}
-      />
-    </mesh>
+    <group ref={groupRef}>
+      {state !== "broken" && (
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[0.7, 0.18, 0.7]} />
+          <meshStandardMaterial
+            color={dominantColor}
+            roughness={0.7}
+            metalness={0.12}
+          />
+        </mesh>
+      )}
+
+      {state === "broken" && (
+        <>
+          <mesh position={[-0.24, 0.15, 0.14]} rotation={[0.7, 0.4, 0.5]} castShadow>
+            <boxGeometry args={[0.42, 0.12, 0.38]} />
+            <meshStandardMaterial color="#d3a36a" roughness={0.8} />
+          </mesh>
+          <mesh position={[0.18, -0.12, -0.1]} rotation={[0.8, -0.5, -0.6]} castShadow>
+            <boxGeometry args={[0.38, 0.12, 0.42]} />
+            <meshStandardMaterial color="#e0b77a" roughness={0.8} />
+          </mesh>
+          <mesh position={[0.14, 0.35, 0.2]} rotation={[1.1, 0.4, 0.8]} castShadow>
+            <boxGeometry args={[0.33, 0.1, 0.3]} />
+            <meshStandardMaterial color="#f0c78a" roughness={0.8} />
+          </mesh>
+          <mesh position={[0, 0.8, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+            <torusGeometry args={[0.55, 0.06, 10, 26]} />
+            <meshStandardMaterial color="#f7d7a6" transparent opacity={0.72} />
+          </mesh>
+        </>
+      )}
+    </group>
   );
 }
 
@@ -265,6 +361,15 @@ function StallProps() {
         <planeGeometry args={[1.6, 0.62]} />
         <meshBasicMaterial color="#5d2f1d" />
       </mesh>
+      <Text
+        position={[0, 0.9, -0.1]}
+        fontSize={0.24}
+        color="#f7d07d"
+        anchorX="center"
+        anchorY="middle"
+      >
+        CHA BAAN
+      </Text>
     </group>
   );
 }
@@ -272,18 +377,22 @@ function StallProps() {
 function TeaStallSceneContent({
   teaProfile,
   audioEnabled,
+  radioEnabled,
   dropSignal,
+  soundCue,
   onScoreChange,
+  onRadioToggle,
 }: ChaBaanSceneProps) {
   const teaColor = useMemo(() => getTeaColor(teaProfile), [teaProfile]);
-  const dropletPulse = dropSignal > 0;
+  const steamActive = dropSignal > 0 || audioEnabled;
+  const steamIntensity = Math.min(1.2, teaProfile.aroma / 120 + teaProfile.ginger / 120);
 
   return (
     <>
       <color attach="background" args={["#170f14"]} />
       <fog attach="fog" args={["#170f14", 5, 13]} />
       <ambientLight
-        intensity={0.8 + (audioEnabled ? 0.1 : 0)}
+        intensity={0.8 + (audioEnabled ? 0.12 : 0)}
         color="#ffc18f"
       />
       <directionalLight
@@ -322,9 +431,9 @@ function TeaStallSceneContent({
           <meshStandardMaterial color="#c68d5d" roughness={0.62} />
         </mesh>
 
-        <TeaCup teaColor={teaColor} />
+        <TeaCup teaColor={teaColor} isHot={teaProfile.aroma > 40 || soundCue > 0} />
         <BiscuitPhysics dropSignal={dropSignal} onScoreChange={onScoreChange} />
-        <SteamParticles active={dropletPulse} />
+        <SteamParticles active={steamActive} intensity={steamIntensity} />
 
         <mesh position={[1.6, 0.4, 0.8]} castShadow>
           <boxGeometry args={[0.48, 0.48, 0.48]} />
@@ -340,6 +449,7 @@ function TeaStallSceneContent({
           <meshStandardMaterial color="#d6b48d" roughness={0.8} />
         </mesh>
 
+        <RadioModel isOn={radioEnabled} onToggle={onRadioToggle} />
         <StallProps />
       </group>
 

@@ -17,7 +17,9 @@ export default function Home() {
   const [score, setScore] = useState(0);
   const [verdict, setVerdict] = useState("Ready to dip");
   const [audioEnabled, setAudioEnabled] = useState(true);
+  const [radioEnabled, setRadioEnabled] = useState(true);
   const [dropSignal, setDropSignal] = useState(0);
+  const [soundCue, setSoundCue] = useState(0);
 
   const teaSceneProfile = useMemo(() => teaProfile, [teaProfile]);
 
@@ -30,11 +32,14 @@ export default function Home() {
           <ChaBaanScene
             teaProfile={teaSceneProfile}
             audioEnabled={audioEnabled}
+            radioEnabled={radioEnabled}
             dropSignal={dropSignal}
+            soundCue={soundCue}
             onScoreChange={(nextScore, nextVerdict) => {
               setScore(nextScore);
               setVerdict(nextVerdict);
             }}
+            onRadioToggle={() => setRadioEnabled((current) => !current)}
           />
         </div>
 
@@ -43,17 +48,20 @@ export default function Home() {
           onChange={setTeaProfile}
           onDrop={() => {
             setDropSignal((current) => current + 1);
+            setSoundCue((current) => current + 1);
             setVerdict("Dipping...");
             setScore((value) => Math.max(0, value - 10));
           }}
           score={score}
           verdict={verdict}
           audioEnabled={audioEnabled}
+          radioEnabled={radioEnabled}
           onAudioToggle={() => setAudioEnabled((current) => !current)}
+          onRadioToggle={() => setRadioEnabled((current) => !current)}
         />
       </div>
 
-      <AudioController enabled={audioEnabled} />
+      <AudioController enabled={audioEnabled} radioEnabled={radioEnabled} cue={soundCue} />
     </main>
   );
 }
