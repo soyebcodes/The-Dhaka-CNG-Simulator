@@ -1,35 +1,85 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Hind_Siliguri } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const hindSiliguri = Hind_Siliguri({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["bengali", "latin"],
+  variable: "--font-hind-siliguri",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#1a110b",
+  colorScheme: "dark",
+};
 
 export const metadata: Metadata = {
-  title: "Cha Khor Runner",
+  metadataBase: new URL("https://chanda-truck.rasel.me"),
+  title: "সবজির ট্রাক — ক্ষেত থেকে কাওরান বাজার | বাংলা ট্রাক গেম",
   description:
-    "A Bangladeshi village runner game where you dodge coffee, collect chai, and sprint through the lane.",
+    "ক্ষেতে ৳২০, কাওরান বাজারে ৳৫৮ — মাঝখানে কে খেলো? চাঁদার ব্যারিকেড, সেতুর টোল আর রেলক্রসিং পেরিয়ে ঢাকায় সবজির ট্রাক চালান। ফ্রি ব্রাউজার গেম।",
+  keywords: [
+    "সবজির ট্রাক",
+    "বাংলা গেম",
+    "ট্রাক গেম",
+    "চাঁদাবাজি",
+    "কাওরান বাজার",
+    "সবজির দাম",
+    "পদ্মা সেতু",
+    "যমুনা সেতু",
+    "ব্রাউজার গেম",
+    "Bangla game",
+    "truck driving game",
+    "Bangladesh",
+    "satire",
+  ],
+  authors: [{ name: "সবজির ট্রাক" }],
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png" }],
+  },
+  manifest: "/manifest.webmanifest",
+  openGraph: {
+    type: "website",
+    siteName: "সবজির ট্রাক",
+    locale: "bn_BD",
+    title: "সবজির ট্রাক — ক্ষেতে ৳২০, বাজারে ৳৫৮। মাঝখানে কে খেলো?",
+    description:
+      "চাঁদা, টোল আর রেলক্রসিং পেরিয়ে ঢাকায় সবজির ট্রাক চালান। শেষে দেখুন প্রতি কেজিতে কত গেল চাঁদায়।",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "সবজির ট্রাক — রাস্তায় রঙিন ট্রাক, পাশে চাঁদা, সেতু, ট্রেন ও টোলের প্রতীক",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "সবজির ট্রাক — মাঝখানে কে খেলো?",
+    description:
+      "চাঁদা, টোল আর রেলক্রসিং পেরিয়ে ঢাকায় সবজির ট্রাক চালানোর ব্যঙ্গাত্মক ৩ডি গেম।",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-[#120d12] text-white">
-        {children}
-      </body>
+    <html lang="bn" dir="ltr" className={hindSiliguri.variable}>
+      <body>{children}</body>
     </html>
   );
 }
