@@ -1,47 +1,24 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import CNGGameCanvas from "../components/canvas/cng-game-canvas";
+import CNGHud from "../components/ui/cng-hud";
+import CheckpointModal from "../components/ui/checkpoint-modal";
+import PassengerModal from "../components/ui/passenger-modal";
+import StartScreenModal from "../components/ui/start-screen-modal";
+import GameOverModal from "../components/ui/game-over-modal";
 
-export default function SobjirTruckGame() {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Only run in client
-    const scriptId = "sobjir-truck-engine";
-    if (document.getElementById(scriptId)) {
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.id = scriptId;
-    script.type = "module";
-    script.src = "/game/sobjir-truck.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      // Optional: script cleanup if needed on full unmount
-    };
-  }, []);
-
+export default function Home() {
   return (
-    <div id="app" ref={containerRef}>
-      <canvas id="game-canvas" aria-label="সবজির ট্রাক গেম" />
-      <div id="ui-root" />
-      <main id="boot">
-        <h1>সবজির ট্রাক</h1>
-        <p>ক্ষেতে সস্তা, বাজারে আগুন — মাঝের রাস্তাটা নিজে চালিয়ে দেখুন।</p>
-        <p className="boot-more">
-          যশোর, রাজশাহী বা ফরিদপুরের ক্ষেত থেকে সবজি কিনে ঢাকার কাওরান বাজারের পথে
-          ট্রাক চালান। পথে চাঁদাবাজির ব্যারিকেড, লালন শাহ, যমুনা ও পদ্মা সেতুর
-          টোল, রেলক্রসিং, বাজার ও স্কুল এলাকা, বৃষ্টি-ঝড় আর রাত। শেষে হিসাব:
-          প্রতি কেজিতে কত গেল চাঁদায়।
-        </p>
-        <p className="boot-loading">লোড হচ্ছে…</p>
-        <noscript>
-          <p>এই গেম খেলতে ব্রাউজারে JavaScript চালু করুন।</p>
-        </noscript>
-      </main>
-    </div>
+    <main className="relative h-screen w-screen overflow-hidden bg-[#161b22] select-none font-sans">
+      {/* 3D Three.js WebGL Canvas */}
+      <CNGGameCanvas />
+
+      {/* 2D UI Overlay */}
+      <CNGHud />
+      <CheckpointModal />
+      <PassengerModal />
+      <StartScreenModal />
+      <GameOverModal />
+    </main>
   );
 }
