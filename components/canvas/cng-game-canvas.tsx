@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { cngAudio } from "../../lib/cng-audio";
-import { PASSENGER_PRESETS, useGameStore } from "../../store/game-store";
+import { PASSENGER_PRESETS, RAIN_PASSENGER_PRESETS, useGameStore } from "../../store/game-store";
 import type { Checkpoint } from "../../types/game";
 
 export default function CNGGameCanvas() {
@@ -54,6 +54,11 @@ export default function CNGGameCanvas() {
     dirLight.shadow.camera.bottom = -20;
     scene.add(dirLight);
 
+    // Point lights for vibrant street glow
+    const streetLampGlow = new THREE.PointLight("#ffd580", 1.4, 28);
+    streetLampGlow.position.set(0, 8, 20);
+    scene.add(streetLampGlow);
+
     // --- Geometries & Materials Cache for disposal ---
     const geometriesToDispose: THREE.BufferGeometry[] = [];
     const materialsToDispose: THREE.Material[] = [];
@@ -66,6 +71,24 @@ export default function CNGGameCanvas() {
       materialsToDispose.push(mat);
       return mat;
     };
+
+    // --- 3D Rain Particle System ---
+    const RAIN_COUNT = 900;
+    const rainPositions = new Float32Array(RAIN_COUNT * 3);
+    const rainVelocities = new Float32Array(RAIN_COUNT);
+    for (let i = 0; i < RAIN_COUNT; i++) {
+      rainPositions[i * 3] = (Math.random() - 0.5) * 60;
+      rainPositions[i * 3 + 1] = Math.random() * 30 + 2;
+      rainPositions[i * 3 + 2] = (Math.random() - 0.5) * 80 + 30;
+      rainVelocities[i] = 14 + Math.random() * 12;
+    }
+    const rainGeo = regGeo(new THREE.BufferGeometry());
+    rainGeo.setAttribute("position", new THREE.BufferAttribute(rainPositions, 3));
+    const rainMat = regMat(new THREE.PointsMaterial({ color: "#a8d8f0", size: 0.12, transparent: true, opacity: 0.65 }));
+    const rainParticles = new THREE.Points(rainGeo, rainMat);
+    rainParticles.visible = false;
+    scene.add(rainParticles);
+    let lightningTimer = 0;
 
     // --- Build Player CNG ---
     const cngGroup = new THREE.Group();
@@ -387,7 +410,7 @@ export default function CNGGameCanvas() {
     // --- Dynamic Traffic System ---
     interface SimTraffic {
       mesh: THREE.Group;
-      type: "bus" | "rickshaw" | "bike" | "car";
+      type: "bus" | "rickshaw" | "battery_rickshaw" | "bike" | "car";
       laneX: number;
       z: number;
       speed: number;
@@ -398,7 +421,10 @@ export default function CNGGameCanvas() {
     const trafficList: SimTraffic[] = [];
     const busColors = ["#c0392b", "#2980b9", "#d35400", "#16a085"];
 
-    const createTrafficVehicle = (type: "bus" | "rickshaw" | "bike" | "car", zPos: number): SimTraffic => {
+    const createTrafficVehicle = (
+      type: "bus" | "rickshaw" | "battery_rickshaw" | "bike" | "car",
+      zPos: number
+    ): SimTraffic => {
       const group = new THREE.Group();
       let width = 2;
       let length = 4.5;
@@ -424,6 +450,39 @@ export default function CNGGameCanvas() {
         const win = new THREE.Mesh(winGeo, blackMat);
         win.position.y = 2.2;
         group.add(win);
+      } else if (type === "battery_rickshaw") {
+        // ঢাকা Tesla: Battery-powered rickshaw with neon body, heavy battery block, LED light
+        width = 1.3;
+        length = 2.4;
+        speed = 28; // Fast and reckless!
+        const teslaMat = regMat(
+          new THREE.MeshStandardMaterial({
+            color: Math.random() > 0.5 ? "#00e5ff" : "#ff007f", // Cyberpunk Dhaka Neon
+            roughness: 0.35,
+            metalness: 0.3,
+          })
+        );
+        const seat = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.05, 0.45, 0.85)), teslaMat);
+        seat.position.y = 0.6;
+        group.add(seat);
+
+        // Battery block under seat
+        const batteryMat = regMat(new THREE.MeshStandardMaterial({ color: "#1c2833", roughness: 0.8 }));
+        const battery = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.85, 0.35, 0.55)), batteryMat);
+        battery.position.set(0, 0.25, 0);
+        group.add(battery);
+
+        // Hood
+        const hood = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.58, 0.58, 0.95, 8)), teslaMat);
+        hood.rotation.z = Math.PI / 2;
+        hood.position.set(0, 1.25, -0.1);
+        group.add(hood);
+
+        // Bright LED headlight
+        const ledMat = regMat(new THREE.MeshBasicMaterial({ color: "#00ffff" }));
+        const led = new THREE.Mesh(regGeo(new THREE.SphereGeometry(0.12, 8, 8)), ledMat);
+        led.position.set(0, 0.85, 1.1);
+        group.add(led);
       } else if (type === "rickshaw") {
         width = 1.2;
         length = 2.2;
@@ -471,7 +530,13 @@ export default function CNGGameCanvas() {
 
     // Spawn Initial Traffic well ahead of player
     for (let i = 0; i < 14; i++) {
-      const types: Array<"bus" | "rickshaw" | "bike" | "car"> = ["bus", "rickshaw", "bike", "car"];
+      const types: Array<"bus" | "rickshaw" | "battery_rickshaw" | "bike" | "car"> = [
+        "bus",
+        "rickshaw",
+        "battery_rickshaw",
+        "bike",
+        "car",
+      ];
       const t = types[Math.floor(Math.random() * types.length)];
       trafficList.push(createTrafficVehicle(t, 45 + i * 26));
     }
@@ -772,6 +837,12 @@ export default function CNGGameCanvas() {
       trafficList.forEach((tr) => {
         // Traffic moves forward relative to road
         const trRelativeSpeed = tr.speed - currentSpeed;
+        // Battery rickshaws (Dhaka Tesla) weave slightly erratically
+        if (tr.type === "battery_rickshaw") {
+          tr.laneX += Math.sin(time * 0.003 + tr.mesh.id) * 0.012;
+          tr.laneX = THREE.MathUtils.clamp(tr.laneX, -6.5, 6.5);
+        }
+
         tr.z += (trRelativeSpeed * 1000 * dt) / 3600;
         tr.mesh.position.set(tr.laneX, 0, tr.z);
 
@@ -803,8 +874,27 @@ export default function CNGGameCanvas() {
           playerPos.x += playerPos.x > tr.mesh.position.x ? 1.5 : -1.5;
           playerPos.x = THREE.MathUtils.clamp(playerPos.x, -maxRoadOffset, maxRoadOffset);
 
-          const penalty = speedBefore > 38 ? 150 : 80;
-          store.recordCrash(penalty, `💥 ধপাস! মারাত্মক সংঘর্ষ! সিএনজি মেরামত খরচ ৳ ${penalty}!`);
+          let penalty = speedBefore > 38 ? 150 : 80;
+          let crashMsg = `💥 ধপাস! মারাত্মক সংঘর্ষ! সিএনজি মেরামত খরচ ৳ ${penalty}!`;
+
+          if (tr.type === "battery_rickshaw") {
+            penalty = 110;
+            crashMsg = `💥 ঢাকা Tesla (ব্যাটারি রিকশা) তে ধাক্কা! জনতা: "ছাইড়া দেন মামা গরীব মানুষ!" (-৳ ${penalty})`;
+          } else if (tr.type === "bus") {
+            penalty = 160;
+            crashMsg = `💥 লোকাল বাসের সাথে ধাক্কা! ড্রাইভার বলছে: "আমার কোনো দোষ নাই!" (-৳ ${penalty})`;
+          } else if (tr.type === "bike") {
+            penalty = 90;
+            crashMsg = `💥 বাইকারের সাথে ধাক্কা! "মামা পাঠাও ট্রিপে ছিলাম, হেলমেট ভাঙলেন!" (-৳ ${penalty})`;
+          } else if (tr.type === "car") {
+            penalty = 140;
+            crashMsg = `💥 প্রাইভেট কারে ধাক্কা! "বউরে নিয়া ডেটে যাইতাসি, স্ক্র্যাচ মারলেন!" (-৳ ${penalty})`;
+          } else if (tr.type === "rickshaw") {
+            penalty = 80;
+            crashMsg = `💥 রিকশায় ধাক্কা! রিকশাওয়ালা: "মামা প্যাডেল ভাইঙ্গা গেল!" (-৳ ${penalty})`;
+          }
+
+          store.recordCrash(penalty, crashMsg);
         }
       });
 
@@ -812,27 +902,63 @@ export default function CNGGameCanvas() {
       const currentDist = store.distanceTraveledMeters;
       if (currentDist > nextCheckpointDistance && !store.activeCheckpoint) {
         nextCheckpointDistance = currentDist + 400 + Math.random() * 300;
-        const isSergeant = Math.random() > 0.5;
-        const newCp: Checkpoint = isSergeant
+        const roll = Math.random();
+        const newCp: Checkpoint = roll < 0.28
           ? {
               id: `cp-${Math.floor(currentDist)}`,
               type: "police_sergeant",
               distance: currentDist,
-              titleBn: "ট্রাফিক সার্জেন্ট (কাগজ চেক)",
+              titleBn: "ট্রাফিক সার্জেন্ট 🚔",
               subBn: "মামলা না খাইতে চাইলে চা-পানির খরচ দিন!",
               demandAmount: 300,
-              dialogueBn: "ড্রাইভার সাব, সাইড করেন! ফিটনেস সার্টিফিকেট আর রুট পারমিট দেখান!",
+              dialogueBn: "ড্রাইভার সাব! ফিটনেস সার্টিফিকেট আর রুট পারমিট দেখান! না থাকলে চা-নাস্তার ব্যবস্থা করেন!",
+              passed: false,
+              evaded: false,
+            }
+          : roll < 0.52
+          ? {
+              id: `cp-${Math.floor(currentDist)}`,
+              type: "boro_bhai_chanda",
+              distance: currentDist,
+              titleBn: "এলাকার বড় ভাই 😤",
+              subBn: "স্ট্যান্ড উন্নয়ন তহবিল ও ভাইদের নাস্তা বাবদ চাঁদা",
+              demandAmount: 200,
+              dialogueBn: "ঐ সিএনজি থামাও! এই এলাকায় গাড়ি চালাইবা আর বড় ভাইরে সালাম দেবা না? মহল্লার উন্নয়নে একটু দিয়া যাও!",
+              passed: false,
+              evaded: false,
+            }
+          : roll < 0.68
+          ? {
+              id: `cp-${Math.floor(currentDist)}`,
+              type: "boro_bhai_chanda",
+              distance: currentDist,
+              titleBn: "মহল্লা ফুটবল টুর্নামেন্ট ⚽",
+              subBn: "আন্তঃমহল্লা ফুটবল স্পনসরশিপ চাঁদা",
+              demandAmount: 150,
+              dialogueBn: "মামা থামেন! মহল্লার ফুটবল টুর্নামেন্ট আছে — জার্সি কিনতে টাকা নাই! স্পনসর করেন, আপনার নাম লাগাব!",
+              passed: false,
+              evaded: false,
+            }
+          : roll < 0.82
+          ? {
+              id: `cp-${Math.floor(currentDist)}`,
+              type: "flyover_toll",
+              distance: currentDist,
+              titleBn: "ফ্লাইওভার টোল প্লাজা 🛣️",
+              subBn: "সরকারি টোল — ফ্লাইওভার রক্ষণাবেক্ষণ ফি",
+              demandAmount: 100,
+              dialogueBn: "মামা, এই ফ্লাইওভার সরকারি। টোল দিয়া যান — না দিলে আটকায়া রাখব!",
               passed: false,
               evaded: false,
             }
           : {
               id: `cp-${Math.floor(currentDist)}`,
-              type: "boro_bhai_chanda",
+              type: "vip_protocol",
               distance: currentDist,
-              titleBn: "এলাকার বড় ভাই (চাঁদা পয়েন্ট)",
-              subBn: "স্ট্যান্ড উন্নয়ন তহবিল ও ভাইদের নাস্তা বাবদ চাঁদা",
-              demandAmount: 200,
-              dialogueBn: "ঐ সিএনজি থামাও! এই এলাকায় গাড়ি চালাইবা আর বড় ভাইরে সালাম দেবা না?",
+              titleBn: "পূজা/ঈদ চাঁদা কমিটি 🪔",
+              subBn: "বার্ষিক উৎসব চাঁদা — অংশগ্রহণ বাধ্যতামূলক",
+              demandAmount: 180,
+              dialogueBn: "ভাই! উৎসবের চাঁদা! গরীব-বড়লোক সবাই দেয়, আপনি কি দেবেন না?",
               passed: false,
               evaded: false,
             };
@@ -840,16 +966,70 @@ export default function CNGGameCanvas() {
         store.setCheckpoint(newCp);
       }
 
-      // 7. Trigger Passenger Hails
+      // 7. Trigger Passenger Hails — prefer rain presets when weather is rainy
       if (currentDist > nextPassengerHailDistance && !store.currentPassenger && !store.pendingPassengerHail) {
-        nextPassengerHailDistance = currentDist + 220 + Math.random() * 250;
-        const preset = PASSENGER_PRESETS[Math.floor(Math.random() * PASSENGER_PRESETS.length)];
+        nextPassengerHailDistance = currentDist + 200 + Math.random() * 220;
+        const isRainy = store.weather === "rainy";
+        const pool = isRainy && Math.random() > 0.45
+          ? RAIN_PASSENGER_PRESETS
+          : PASSENGER_PRESETS;
+        const preset = pool[Math.floor(Math.random() * pool.length)];
         store.hailPassenger({
           ...preset,
           id: `p-${Math.floor(currentDist)}`,
           pickupDistance: currentDist,
           dropDistance: currentDist + preset.destination.distanceMeters,
         });
+      }
+
+      // 8. Rain particle system update
+      const isRaining = store.weather === "rainy";
+      rainParticles.visible = isRaining;
+      if (isRaining) {
+        rainMat.opacity = 0.65;
+        const posArr = rainGeo.attributes.position.array as Float32Array;
+        for (let ri = 0; ri < RAIN_COUNT; ri++) {
+          posArr[ri * 3 + 1] -= rainVelocities[ri] * dt;
+          posArr[ri * 3] += 2 * dt; // slight angle
+          if (posArr[ri * 3 + 1] < -2) {
+            posArr[ri * 3] = (Math.random() - 0.5) * 60;
+            posArr[ri * 3 + 1] = 28 + Math.random() * 8;
+            posArr[ri * 3 + 2] = (Math.random() - 0.5) * 80 + 30;
+          }
+        }
+        rainGeo.attributes.position.needsUpdate = true;
+
+        // Lightning flash every 4-8 seconds
+        lightningTimer -= dt;
+        if (lightningTimer <= 0) {
+          lightningTimer = 4 + Math.random() * 5;
+          // flash
+          ambientLight.intensity = 3.5;
+          dirLight.intensity = 4.8;
+          cngAudio.thunder();
+          setTimeout(() => {
+            ambientLight.intensity = 0.35;
+            dirLight.intensity = 0.55;
+          }, 120);
+          setTimeout(() => {
+            ambientLight.intensity = 0.45;
+            dirLight.intensity = 0.7;
+          }, 280);
+        }
+
+        // Rain: dark wet atmosphere
+        scene.fog = new THREE.FogExp2("#0d1520", 0.022);
+        scene.background = new THREE.Color("#0d1520");
+        ambientLight.color.set("#8ba5c4");
+        dirLight.color.set("#7090b0");
+      } else {
+        // Sunny: normal
+        scene.fog = new THREE.FogExp2("#161b22", 0.012);
+        scene.background = new THREE.Color("#161b22");
+        ambientLight.color.set("#e0e6ed");
+        ambientLight.intensity = 0.7;
+        dirLight.color.set("#fff5d6");
+        dirLight.intensity = 1.8;
       }
 
       // Camera Follows Player CNG with Smooth Damping + Crash Shake Effect

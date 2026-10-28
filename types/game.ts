@@ -4,7 +4,9 @@ export type DestinationId =
   | "dhanmondi27"
   | "gulshan1"
   | "old_dhaka"
-  | "shahbag";
+  | "shahbag"
+  | "motijheel"
+  | "banani";
 
 export interface Destination {
   id: DestinationId;
@@ -22,7 +24,7 @@ export interface Passenger {
   avatar: string;
   dialogueBn: string;
   driverRoastBn: string;
-  roastTopic: "rain" | "meter" | "garage" | "waterlog" | "traffic";
+  roastTopic: "rain" | "meter" | "garage" | "waterlog" | "traffic" | "theft" | "accident" | "tesla" | "vip";
   pickupDistance: number;
   dropDistance: number;
   destination: Destination;
@@ -30,6 +32,7 @@ export interface Passenger {
   isUrgent: boolean;
   patienceSec: number;
   isRainOnly?: boolean;
+  streetAlert?: string; // Breaking news banner shown when passenger is picked up
 }
 
 export type CheckpointType =
@@ -52,7 +55,7 @@ export interface Checkpoint {
 
 export interface TrafficVehicle {
   id: number;
-  type: "bus" | "rickshaw" | "cng" | "bike" | "car";
+  type: "bus" | "rickshaw" | "battery_rickshaw" | "cng" | "bike" | "car";
   lane: number;
   z: number;
   speed: number;
@@ -79,4 +82,11 @@ export interface GameMetrics {
   tripsCompleted: number;
   chasesEscaped: number;
   distanceTraveledMeters: number;
+}
+
+export interface StreetEvent {
+  id: string;
+  emoji: string;
+  textBn: string;
+  durationSec: number;
 }
