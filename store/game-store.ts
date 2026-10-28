@@ -42,47 +42,81 @@ export const DESTINATIONS: Destination[] = [
 
 export const PASSENGER_PRESETS: Array<Omit<Passenger, "id" | "pickupDistance" | "dropDistance">> = [
   {
-    nameBn: "অফিস ফেরত সজল সাহেব",
-    avatar: "👨‍💼",
-    dialogueBn: "মামা, ফার্মগেট যান? জ্যামের আগে পৌঁছাতে পারলে ৩০ টাকা বখশিশ দিমু!",
+    nameBn: "ভিজে জবজবে শামীম",
+    avatar: "🌧️",
+    dialogueBn: "মামা ফার্মগেট যাইবেন? বৃষ্টিতে ভিজে একাকার! একটু তাড়াতাড়ি টানেন মামা!",
+    driverRoastBn: "বৃষ্টির দিনে সিএনজির চাকা ঘুরলেই তো ৭ কোটি টাকা ভাড়া মামা! ইঞ্জিন পানিতে ডুবলে আমারে কি সরকার নতুন কিস্তিতে সিএনজি দিব? উঠলে ৭০০ টাকা দেন, নাইলে সাতার কাইটা যান!",
+    roastTopic: "rain",
     destination: DESTINATIONS[0],
-    fareOffer: 190,
+    fareOffer: 700,
+    isUrgent: true,
+    patienceSec: 30,
+    isRainOnly: true,
+  },
+  {
+    nameBn: "ছাতাওয়ালা জামিল সাহেব",
+    avatar: "☔",
+    dialogueBn: "মামা মিরপুর ১০ যাবেন? রাস্তায় নাকি একটু পানি জমছে, যাবেন কি না বলেন?",
+    driverRoastBn: "একটু পানি না মামা, কাজীপাড়ায় তো এখন বঙ্গোপসাগর! সিএনজি এখন সাবমেরিন বানায়া নামাইতে হইব! সাবমেরিন ট্যাক্স আর লাইফ জ্যাকেট ফি সহ ১ হাজার টাকা!",
+    roastTopic: "waterlog",
+    destination: DESTINATIONS[1],
+    fareOffer: 950,
     isUrgent: true,
     patienceSec: 35,
+    isRainOnly: true,
   },
   {
     nameBn: "ঢাকা ভার্সিটির রিয়া",
     avatar: "👩‍🎓",
-    dialogueBn: "মামা ধানমন্ডি ২৭ যাবেন? কিন্তু মিটারে যাবেন তো? মিটারের চেয়ে বেশি নাই!",
+    dialogueBn: "মামা ধানমন্ডি ২৭ যাবেন? কিন্তু মিটারে যাবেন তো? মিটারের চেয়ে এক টাকাও বেশি দিব না কিন্তু!",
+    driverRoastBn: "মিটার তো সরকারের শো-পিস মামা! মিটারে গেলে বউরে খাওয়ামু কী, আর মালিকের দৈনিক জমা দিমু কী? নিজের পকেট থিকা তেল ভইরা তো আপনারে ধানমন্ডি নিমু না!",
+    roastTopic: "meter",
     destination: DESTINATIONS[2],
-    fareOffer: 180,
+    fareOffer: 220,
     isUrgent: false,
     patienceSec: 45,
   },
   {
-    nameBn: "বিরিয়ানি শিকারি রাকিব",
-    avatar: "🧑‍🍳",
-    dialogueBn: "মামা সোজা পুরান ঢাকা টানেন! কাচ্চির ক্ষুধা লাগছে, ডানে-বামে কাটবেন না!",
-    destination: DESTINATIONS[4],
-    fareOffer: 250,
+    nameBn: "অফিস ফেরত সজল সাহেব",
+    avatar: "👨‍💼",
+    dialogueBn: "মামা ফার্মগেট চলেন! জরুরি মিটিং আছে, পৌঁছাইতে পারলে ৫০ টাকা বখশিশ দিমু!",
+    driverRoastBn: "যামু না মামা, উল্টা পথ! মেজাজ ঠান্ডা নাই, পেটে গ্যাস হইছে আর আমি এখন গাড়ি নিয়া গ্যারেজে ঘুমামু! হাঁইটা যান!",
+    roastTopic: "garage",
+    destination: DESTINATIONS[0],
+    fareOffer: 260,
     isUrgent: false,
-    patienceSec: 40,
+    patienceSec: 35,
   },
   {
     nameBn: "করপোরেট বস্‌ আসিফ",
     avatar: "🕶️",
-    dialogueBn: "গুলশান ১ আর্জেন্ট মিটিং! ভিআইপি ফ্লাইওভার দিয়া টানেন, যত টাকা লাগে দিমু!",
+    dialogueBn: "গুলশান ১ চত্বরে আর্জেন্ট মিটিং! ফ্লাইওভার দিয়া টানেন, যত টাকা লাগে দিমু!",
+    driverRoastBn: "গুলশানের জ্যামের নরকে একবার ঢুকলে তো আজকা আর ফেরা নাই! গাড়ি থিকা নাতি-পুতি আইসা উদ্ধার করা লাগব! জ্যাম ঝুঁকি ভাতা সহ ৫০০ টাকা ফিক্সড!",
+    roastTopic: "traffic",
     destination: DESTINATIONS[3],
-    fareOffer: 350,
+    fareOffer: 500,
     isUrgent: true,
-    patienceSec: 30,
+    patienceSec: 28,
   },
   {
-    nameBn: "ব্যাগভর্তি খালাম্মা",
+    nameBn: "বিরিয়ানি শিকারি রাকিব",
+    avatar: "🧑‍🍳",
+    dialogueBn: "মামা সোজা পুরান ঢাকা টানেন! কাচ্চির ক্ষিধা লাগছে, জ্যামের মধ্যে ডানে-বামে কাটবেন না!",
+    driverRoastBn: "৩ ঘণ্টা গ্যাসের লাইনে দাঁড়ায়ে মেজাজ গরম মামা! আপনার কাচ্চির গন্ধ শোনার আগে আমার সিলিন্ডার খালি হইব! ৩০০ টাকার নিচে এক ইঞ্চিও চাকা ঘুরব না!",
+    roastTopic: "traffic",
+    destination: DESTINATIONS[4],
+    fareOffer: 320,
+    isUrgent: false,
+    patienceSec: 40,
+  },
+  {
+    nameBn: "ডিমের খাঁচিওয়ালা খালাম্মা",
     avatar: "🧕",
-    dialogueBn: "মিরপুর যাব বাবা। সাবধানে চালাবা, ঝাঁকি দিও না, ডিমের খাঁচি আছে!",
+    dialogueBn: "মিরপুর যাব বাবা। একদম সাবধানে চালাবা, ঝাঁকি দিও না, খাঁচিতে খাঁটি ডিম আছে!",
+    driverRoastBn: "খালাম্মা, ঢাকার ভাঙা খানাখন্দে সিএনজি চালায় তো স্বয়ং পাইলটও ঝাঁকি খাইব! ডিম ফুটলে অমলেট বানায়া নিয়েন, ঝাঁকি ছাড়া যাইতে চাইলে হেলিকপ্টার ডাকেন!",
+    roastTopic: "traffic",
     destination: DESTINATIONS[1],
-    fareOffer: 230,
+    fareOffer: 250,
     isUrgent: false,
     patienceSec: 50,
   },
@@ -90,6 +124,7 @@ export const PASSENGER_PRESETS: Array<Omit<Passenger, "id" | "pickupDistance" | 
 
 interface GameState {
   gameState: "menu" | "driving" | "passenger_modal" | "checkpoint_modal" | "game_over" | "garage";
+  weather: "sunny" | "rainy";
   cash: number;
   gasPressureBar: number;
   speedKmh: number;
@@ -112,6 +147,8 @@ interface GameState {
   crashAlert: string | null;
 
   // Actions
+  setWeather: (weather: "sunny" | "rainy") => void;
+  toggleWeather: () => void;
   recordCrash: (penalty: number, message: string) => void;
   clearCrashAlert: () => void;
   startShift: () => void;
@@ -136,6 +173,7 @@ interface GameState {
 
 export const useGameStore = create<GameState>((set, get) => ({
   gameState: "menu",
+  weather: "sunny",
   cash: 1200,
   gasPressureBar: 180,
   speedKmh: 0,
@@ -185,11 +223,35 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   setSpeed: (speed: number) => set({ speedKmh: Math.max(0, speed) }),
 
+  setWeather: (weather: "sunny" | "rainy") => {
+    cngAudio.setRain(weather === "rainy");
+    if (weather === "rainy") {
+      cngAudio.thunder();
+    }
+    set({ weather });
+  },
+
+  toggleWeather: () => {
+    const next = get().weather === "sunny" ? "rainy" : "sunny";
+    get().setWeather(next);
+  },
+
   advanceDistance: (dtSec: number) => {
-    const { speedKmh, distanceTraveledMeters, gasPressureBar, currentPassenger } = get();
+    const { speedKmh, distanceTraveledMeters, gasPressureBar, currentPassenger, weather } = get();
     const distanceDelta = (speedKmh * 1000 * dtSec) / 3600;
     const newDist = distanceTraveledMeters + distanceDelta;
     const newGas = Math.max(0, gasPressureBar - distanceDelta * 0.0035);
+
+    // Natural weather shifts: if traveled > 500m and sunny, 25% chance to rain periodically
+    const distModulo = Math.floor(newDist / 450);
+    const oldModulo = Math.floor(distanceTraveledMeters / 450);
+    if (distModulo !== oldModulo) {
+      if (weather === "sunny" && Math.random() > 0.45) {
+        get().setWeather("rainy");
+      } else if (weather === "rainy" && Math.random() > 0.5) {
+        get().setWeather("sunny");
+      }
+    }
 
     let newRatio = 0;
     if (currentPassenger) {
@@ -379,8 +441,10 @@ export const useGameStore = create<GameState>((set, get) => ({
   endShift: () => set({ gameState: "game_over" }),
 
   resetGame: () => {
+    cngAudio.setRain(false);
     set({
       gameState: "menu",
+      weather: "sunny",
       cash: 1200,
       gasPressureBar: 180,
       speedKmh: 0,

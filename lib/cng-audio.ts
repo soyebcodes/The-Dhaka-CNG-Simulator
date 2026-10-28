@@ -7,6 +7,8 @@ class CNGAudioEngine {
   private engineSubOsc: OscillatorNode | null = null;
   private engineFilter: BiquadFilterNode | null = null;
   private isRunning = false;
+  private rainNode: AudioBufferSourceNode | null = null;
+  private rainGain: GainNode | null = null;
 
   private initContext(): void {
     if (this.ctx) return;
@@ -259,10 +261,66 @@ class CNGAudioEngine {
     osc.stop(now + 0.55);
   }
 
+  public setRain(active: boolean): void {
+    this.ensureStarted();
+    if (!this.ctx || !this.masterGain) return;
+    if (active) {
+      if (this.rainNode) return;
+      const bufferSize = this.ctx.sampleRate * 2;
+      const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      this.rainNode = this.ctx.createBufferSource();
+      this.rainNode.buffer = noiseBuffer;
+      this.rainNode.loop = true;
+
+      const rainFilter = this.ctx.createBiquadFilter();
+      rainFilter.type = "highpass";
+      rainFilter.frequency.value = 1300;
+
+      this.rainGain = this.ctx.createGain();
+      this.rainGain.gain.setValueAtTime(this.isMuted ? 0 : 0.08, this.ctx.currentTime);
+
+      this.rainNode.connect(rainFilter).connect(this.rainGain).connect(this.masterGain);
+      this.rainNode.start();
+    } else {
+      if (this.rainNode) {
+        try {
+          this.rainNode.stop();
+        } catch {}
+        this.rainNode.disconnect();
+        this.rainNode = null;
+      }
+    }
+  }
+
+  public thunder(): void {
+    this.ensureStarted();
+    if (!this.ctx || !this.masterGain || this.isMuted) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(90, now);
+    osc.frequency.exponentialRampToValueAtTime(25, now + 1.2);
+
+    gain.gain.setValueAtTime(0.35, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.3);
+
+    osc.connect(gain).connect(this.masterGain);
+    osc.start(now);
+    osc.stop(now + 1.35);
+  }
+
   public toggleMute(): boolean {
     this.isMuted = !this.isMuted;
     if (this.masterGain) {
       this.masterGain.gain.value = this.isMuted ? 0 : 0.7;
+    }
+    if (this.rainGain) {
+      this.rainGain.gain.value = this.isMuted ? 0 : 0.08;
     }
     return this.isMuted;
   }

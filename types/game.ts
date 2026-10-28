@@ -14,17 +14,22 @@ export interface Destination {
   zoneType: "market" | "residential" | "vip" | "congested";
 }
 
+export type WeatherType = "sunny" | "rainy";
+
 export interface Passenger {
   id: string;
   nameBn: string;
   avatar: string;
   dialogueBn: string;
+  driverRoastBn: string;
+  roastTopic: "rain" | "meter" | "garage" | "waterlog" | "traffic";
   pickupDistance: number;
   dropDistance: number;
   destination: Destination;
   fareOffer: number;
   isUrgent: boolean;
   patienceSec: number;
+  isRainOnly?: boolean;
 }
 
 export type CheckpointType =
