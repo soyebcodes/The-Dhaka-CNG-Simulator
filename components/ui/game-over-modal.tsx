@@ -34,7 +34,11 @@ export default function GameOverModal() {
         className="w-full max-w-lg rounded-3xl border-2 border-emerald-500/40 bg-gradient-to-b from-[#17201b] via-[#0c1410] to-black p-6 md:p-8 text-white shadow-2xl"
       >
         <div className="text-center">
-          <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold border ${badgeColor}`}>
+          <div className="flex items-center justify-center gap-1.5 text-xs font-black text-emerald-400 mb-1">
+            <span>🛺</span>
+            <span>যামু না মামা! • The Dhaka CNG Simulator</span>
+          </div>
+          <span className={`inline-block rounded-full px-3 py-0.5 text-xs font-bold border ${badgeColor}`}>
             শিফট সমাপ্তি হিসাব-নিকাশ
           </span>
           <h2 className="mt-2 text-2xl font-black text-white">{title}</h2>

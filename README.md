@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛺 যামু না মামা! (Jamu Na Mama!) — The Dhaka CNG Simulator
 
-## Getting Started
+> **"মিটার চলে না মামা! উল্টা পথ, গ্যারেজে যামু, বৃষ্টি হইলে ৭ কোটি!"**
 
-First, run the development server:
+A high-octane, satirical 3D arcade web game simulating the chaotic daily life of a CNG auto-rickshaw driver in Dhaka, Bangladesh.
+
+---
+
+## 🎮 Features
+
+- **Iconic Dhaka Street Banter**: 25+ dynamic passenger scenarios covering meter refusal, rain surges, waterlogging, battery-rickshaw "Dhaka Tesla" crashes, and snatched wallets.
+- **Dhaka Tesla (ব্যাটারি রিকশা)**: Cyberpunk neon electric rickshaws weaving recklessly through traffic with custom crash reactions and local bystander commentary (*"ছাইড়া দেন মামা গরীব মানুষ!"*).
+- **Realistic Weather Cycles**: Sunny days shift dynamically into pouring monsoon rains with 3D rain particles, lightning strikes, wet road atmospheric reflections, and surging fare rates.
+- **চাঁদাবাজি & Checkpoints**: Avoid or bargain with Traffic Sergeants, local Boro Bhais, neighborhood football tournament sponsors, and toll plazas. Evade extortion to trigger high-speed 45+ km/h police chases.
+- **ঢাকা এফএম 88.0 Radio Ticker**: Real-time satirical radio updates and Dhaka city traffic commentary scrolling across the dashboard.
+- **Pure Client-Side 3D Performance**: Zero server database, powered by Three.js WebGL, React 19, Next.js 16 (Turbopack), Zustand 5, and synthesized Web Audio procedural sound effects.
+
+---
+
+## ⌨️ Controls
+
+- **W / Up Arrow**: Gas / Accelerate
+- **S / Down Arrow**: Brake / Reverse
+- **A / Left Arrow**: Steer Left
+- **D / Right Arrow**: Steer Right
+- **Space**: Drift
+- **H**: Dhaka Horn (moves traffic and startles pedestrians)
+- **Left Shift**: Nitro Gas Boost
+
+---
+
+## 🛠️ Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm dev       # Start local dev server
+pnpm typecheck # Strict TypeScript check
+pnpm lint      # ESLint check
+pnpm build     # Next.js static production build
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

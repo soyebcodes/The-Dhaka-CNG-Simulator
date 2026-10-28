@@ -22,14 +22,18 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://chanda-truck.rasel.me"),
-  title: "সিএনজি হ্যাসেল: ঢাকা ট্রাফিক ক্রনিকলস | বাংলা ৩ডি গেম",
+  title: "যামু না মামা! (Jamu Na Mama!) — The Dhaka CNG Simulator",
   description:
-    "মিটার চলে না মামা! ঢাকার জ্যাম, ট্রাফিক সার্জেন্টের মামলা আর বড় ভাইয়ের চাঁদার ব্যারিকেড ঠেলে সবুজ সিএনজি চালান। ব্যঙ্গাত্মক বাংলা ৩ডি আর্কেড গেম।",
+    "যামু না মামা! মিটার চলে না, উল্টা পথ, গ্যারেজে যামু, বৃষ্টি হইলে ৭ কোটি! ঢাকার জ্যাম, ঢাকা টেসলা, ট্রাফিক সার্জেন্ট ও চাঁদাবাজদের প্যাঁচ ঠেলে সিএনজি চালান। ব্যঙ্গাত্মক বাংলা ৩ডি সিমুলেটর গেম।",
   keywords: [
-    "সিএনজি হ্যাসেল",
+    "যামু না মামা",
+    "Jamu Na Mama",
+    "সিএনজি সিমুলেটর",
+    "Dhaka CNG Simulator",
     "বাংলা গেম",
     "সিএনজি গেম",
     "ঢাকা ট্রাফিক",
+    "ঢাকা টেসলা",
     "চাঁদাবাজি",
     "সার্জেন্ট",
     "Bangla 3D game",
@@ -37,7 +41,7 @@ export const metadata: Metadata = {
     "Dhaka traffic rush",
     "satire",
   ],
-  authors: [{ name: "সিএনজি হ্যাসেল" }],
+  authors: [{ name: "যামু না মামা!" }],
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
@@ -48,25 +52,25 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   openGraph: {
     type: "website",
-    siteName: "সবজির ট্রাক",
+    siteName: "যামু না মামা!",
     locale: "bn_BD",
-    title: "সবজির ট্রাক — ক্ষেতে ৳২০, বাজারে ৳৫৮। মাঝখানে কে খেলো?",
+    title: "যামু না মামা! — The Dhaka CNG Simulator",
     description:
-      "চাঁদা, টোল আর রেলক্রসিং পেরিয়ে ঢাকায় সবজির ট্রাক চালান। শেষে দেখুন প্রতি কেজিতে কত গেল চাঁদায়।",
+      "মিটার চলে না মামা! ঢাকার জ্যাম, ঢাকা টেসলা আর চাঁদাবাজদের প্যাঁচ ঠেলে সিএনজি চালান। শেষে দেখুন কত জমলো আর কত গেল চাঁদায়।",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "সবজির ট্রাক — রাস্তায় রঙিন ট্রাক, পাশে চাঁদা, সেতু, ট্রেন ও টোলের প্রতীক",
+        alt: "যামু না মামা! — The Dhaka CNG Simulator",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "সবজির ট্রাক — মাঝখানে কে খেলো?",
+    title: "যামু না মামা! — The Dhaka CNG Simulator",
     description:
-      "চাঁদা, টোল আর রেলক্রসিং পেরিয়ে ঢাকায় সবজির ট্রাক চালানোর ব্যঙ্গাত্মক ৩ডি গেম।",
+      "মিটার চলে না মামা! ঢাকার জ্যাম, ঢাকা টেসলা আর চাঁদাবাজদের প্যাঁচ ঠেলে সিএনজি চালানোর ব্যঙ্গাত্মক ৩ডি গেম।",
     images: ["/og-image.png"],
   },
 };
