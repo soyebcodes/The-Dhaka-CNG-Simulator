@@ -15,8 +15,8 @@ export default function CNGGameCanvas() {
 
     // --- Scene, Camera, Renderer ---
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#161b22");
-    scene.fog = new THREE.FogExp2("#161b22", 0.012);
+    scene.background = new THREE.Color("#e8925a");
+    scene.fog = new THREE.FogExp2("#e8925a", 0.008);
 
     const camera = new THREE.PerspectiveCamera(
       60,
@@ -24,8 +24,8 @@ export default function CNGGameCanvas() {
       0.1,
       600
     );
-    camera.position.set(0, 5, -8);
-    camera.lookAt(0, 1.5, 12);
+    camera.position.set(0, 4.5, -10);
+    camera.lookAt(0, 1.5, 15);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -38,11 +38,11 @@ export default function CNGGameCanvas() {
     container.appendChild(renderer.domElement);
 
     // --- Lights ---
-    const ambientLight = new THREE.AmbientLight("#e0e6ed", 0.7);
+    const ambientLight = new THREE.AmbientLight("#ffcc88", 1.2);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight("#fff5d6", 1.8);
-    dirLight.position.set(20, 40, -10);
+    const dirLight = new THREE.DirectionalLight("#ffaa44", 2.2);
+    dirLight.position.set(30, 50, -20);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 1024;
     dirLight.shadow.mapSize.height = 1024;
@@ -54,14 +54,12 @@ export default function CNGGameCanvas() {
     dirLight.shadow.camera.bottom = -20;
     scene.add(dirLight);
 
-    // Point lights for vibrant street glow
-    const streetLampGlow = new THREE.PointLight("#ffd580", 1.4, 28);
-    streetLampGlow.position.set(0, 8, 20);
-    scene.add(streetLampGlow);
+    // Warm sunset: no street lamp point light needed
 
     // --- Geometries & Materials Cache for disposal ---
     const geometriesToDispose: THREE.BufferGeometry[] = [];
     const materialsToDispose: THREE.Material[] = [];
+    const texturesToDispose: THREE.CanvasTexture[] = [];
 
     const regGeo = <T extends THREE.BufferGeometry>(geo: T): T => {
       geometriesToDispose.push(geo);
@@ -280,14 +278,39 @@ export default function CNGGameCanvas() {
 
     const roadMat = regMat(
       new THREE.MeshStandardMaterial({
-        color: "#272e38",
-        roughness: 0.9,
+        color: "#c4925a",
+        roughness: 1.0,
       })
     );
 
     const roadMarkingMat = regMat(
-      new THREE.MeshBasicMaterial({ color: "#f8f9fa" })
+      new THREE.MeshBasicMaterial({ color: "#a87040" })
     );
+
+    // --- Global Ground Plane ---
+    const groundGeo = regGeo(new THREE.PlaneGeometry(300, 1500));
+    groundGeo.rotateX(-Math.PI / 2);
+    const groundMesh = new THREE.Mesh(groundGeo, regMat(new THREE.MeshStandardMaterial({ color: "#6aaa44", roughness: 1.0 })));
+    groundMesh.position.set(0, -0.01, 300);
+    scene.add(groundMesh);
+
+    // --- Low-Poly Tree Helper (defined BEFORE road segment loop) ---
+    const treeTrunkMat = regMat(new THREE.MeshStandardMaterial({ color: "#5c3d1a", roughness: 0.9 }));
+    const treeLeafMat = regMat(new THREE.MeshStandardMaterial({ color: "#2d7a33", roughness: 0.8 }));
+
+    const addTree = (x: number, z: number, grp: THREE.Group): void => {
+      const tGrp = new THREE.Group();
+      const trunk = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.25, 0.35, 2.2, 7)), treeTrunkMat);
+      trunk.position.y = 1.1;
+      trunk.castShadow = true;
+      tGrp.add(trunk);
+      const leaves = new THREE.Mesh(regGeo(new THREE.ConeGeometry(1.8 + Math.random() * 0.8, 3.5 + Math.random(), 7)), treeLeafMat);
+      leaves.position.y = 3.8;
+      leaves.castShadow = true;
+      tGrp.add(leaves);
+      tGrp.position.set(x, 0, z);
+      grp.add(tGrp);
+    };
 
     const roadSegments: THREE.Group[] = [];
     for (let i = 0; i < ROAD_SEGMENTS; i++) {
@@ -313,71 +336,24 @@ export default function CNGGameCanvas() {
         segGroup.add(stripeMesh2);
       }
 
-      // Concrete Curbs (Left & Right)
-      const curbGeo = regGeo(new THREE.BoxGeometry(0.8, 0.35, SEGMENT_LENGTH));
-      const curbMat = regMat(new THREE.MeshStandardMaterial({ color: "#7f8c8d" }));
-      const leftCurb = new THREE.Mesh(curbGeo, curbMat);
-      leftCurb.position.set(-ROAD_WIDTH / 2 - 0.4, 0.17, 0);
-      segGroup.add(leftCurb);
+      // Dirt shoulders instead of curbs and footpaths
+      const shoulderMat = regMat(new THREE.MeshStandardMaterial({ color: "#b08050", roughness: 1.0 }));
+      const shoulderGeo = regGeo(new THREE.PlaneGeometry(4, SEGMENT_LENGTH));
+      shoulderGeo.rotateX(-Math.PI / 2);
+      const leftShoulder = new THREE.Mesh(shoulderGeo, shoulderMat);
+      leftShoulder.position.set(-ROAD_WIDTH / 2 - 2, 0.01, 0);
+      segGroup.add(leftShoulder);
+      const rightShoulder = new THREE.Mesh(shoulderGeo, shoulderMat);
+      rightShoulder.position.set(ROAD_WIDTH / 2 + 2, 0.01, 0);
+      segGroup.add(rightShoulder);
 
-      const rightCurb = new THREE.Mesh(curbGeo, curbMat);
-      rightCurb.position.set(ROAD_WIDTH / 2 + 0.4, 0.17, 0);
-      segGroup.add(rightCurb);
 
-      // --- ফুটপাত (Raised Sidewalks / Footpaths) ---
-      const FOOTPATH_WIDTH = 4.5;
-      const footpathGeo = regGeo(new THREE.BoxGeometry(FOOTPATH_WIDTH, 0.35, SEGMENT_LENGTH));
-      const footpathMat = regMat(new THREE.MeshStandardMaterial({ color: "#a55348", roughness: 0.85 })); // Reddish Dhaka pavement tiles
-      const leftFootpath = new THREE.Mesh(footpathGeo, footpathMat);
-      leftFootpath.position.set(-ROAD_WIDTH / 2 - FOOTPATH_WIDTH / 2 - 0.4, 0.17, 0);
-      leftFootpath.receiveShadow = true;
-      segGroup.add(leftFootpath);
-
-      const rightFootpath = new THREE.Mesh(footpathGeo, footpathMat);
-      rightFootpath.position.set(ROAD_WIDTH / 2 + FOOTPATH_WIDTH / 2 + 0.4, 0.17, 0);
-      rightFootpath.receiveShadow = true;
-      segGroup.add(rightFootpath);
-
-      // Footpath Props: Tong Cha Stall (টং দোকান) on left, Street Fruit Cart on right
-      if (i % 3 === 1) {
-        // Tong Cha Stall (টং দোকান)
-        const tongGroup = new THREE.Group();
-        const canopy = new THREE.Mesh(
-          regGeo(new THREE.BoxGeometry(2.4, 0.08, 2.2)),
-          regMat(new THREE.MeshStandardMaterial({ color: "#27ae60" }))
-        );
-        canopy.position.set(0, 2.3, 0);
-        tongGroup.add(canopy);
-        const counter = new THREE.Mesh(
-          regGeo(new THREE.BoxGeometry(2.2, 0.95, 0.8)),
-          regMat(new THREE.MeshStandardMaterial({ color: "#795548" }))
-        );
-        counter.position.set(0, 0.5, 0);
-        tongGroup.add(counter);
-        const kettle = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.18, 0.18, 0.3, 8)), metalMat);
-        kettle.position.set(0, 1.12, 0);
-        tongGroup.add(kettle);
-        tongGroup.position.set(-ROAD_WIDTH / 2 - 2.5, 0.35, 10);
-        segGroup.add(tongGroup);
+      // Low-poly trees on both sides
+      for (let t = -SEGMENT_LENGTH / 2; t < SEGMENT_LENGTH / 2; t += 12 + Math.random() * 8) {
+        addTree(-ROAD_WIDTH / 2 - 5 - Math.random() * 10, t, segGroup);
+        addTree(ROAD_WIDTH / 2 + 5 + Math.random() * 10, t, segGroup);
       }
 
-      // Elevated Flyover Piers & Overhead Roadway (every alternate segment)
-      if (i % 2 === 0) {
-        const pillarGeo = regGeo(new THREE.CylinderGeometry(1.2, 1.2, 12, 12));
-        const pillarMat = regMat(new THREE.MeshStandardMaterial({ color: "#566573" }));
-        const leftPillar = new THREE.Mesh(pillarGeo, pillarMat);
-        leftPillar.position.set(-ROAD_WIDTH / 2 - 4.5, 6, 0);
-        segGroup.add(leftPillar);
-
-        const rightPillar = new THREE.Mesh(pillarGeo, pillarMat);
-        rightPillar.position.set(ROAD_WIDTH / 2 + 4.5, 6, 0);
-        segGroup.add(rightPillar);
-
-        const deckGeo = regGeo(new THREE.BoxGeometry(32, 1.5, SEGMENT_LENGTH));
-        const deckMesh = new THREE.Mesh(deckGeo, pillarMat);
-        deckMesh.position.set(0, 12, 0);
-        segGroup.add(deckMesh);
-      }
 
       // Tangled Electric Poles
       const poleGeo = regGeo(new THREE.CylinderGeometry(0.2, 0.25, 9, 8));
@@ -386,22 +362,18 @@ export default function CNGGameCanvas() {
       leftPole.position.set(-ROAD_WIDTH / 2 - 2, 4.5, -15);
       segGroup.add(leftPole);
 
-      // Roadside Buildings & Shop Fronts (positioned behind the footpath)
-      const bldgColors = ["#34495e", "#7b7d7d", "#1f618d", "#641e16", "#145a32"];
-      const bldgGeo = regGeo(new THREE.BoxGeometry(8, 14 + (i % 3) * 6, 18));
-      const bldgMat = regMat(
-        new THREE.MeshStandardMaterial({
-          color: bldgColors[i % bldgColors.length],
-          roughness: 0.85,
-        })
-      );
-      const leftBldg = new THREE.Mesh(bldgGeo, bldgMat);
-      leftBldg.position.set(-ROAD_WIDTH / 2 - FOOTPATH_WIDTH - 4.2, 8, 0);
-      segGroup.add(leftBldg);
-
-      const rightBldg = new THREE.Mesh(bldgGeo, bldgMat);
-      rightBldg.position.set(ROAD_WIDTH / 2 + FOOTPATH_WIDTH + 4.2, 8, 10);
-      segGroup.add(rightBldg);
+      // Wide green grass fields instead of buildings
+      const grassMat = regMat(new THREE.MeshStandardMaterial({ color: "#6aaa44", roughness: 1.0 }));
+      const grassGeo = regGeo(new THREE.PlaneGeometry(60, SEGMENT_LENGTH));
+      grassGeo.rotateX(-Math.PI / 2);
+      const leftGrass = new THREE.Mesh(grassGeo, grassMat);
+      leftGrass.position.set(-ROAD_WIDTH / 2 - 30, 0.01, 0);
+      leftGrass.receiveShadow = true;
+      segGroup.add(leftGrass);
+      const rightGrass = new THREE.Mesh(grassGeo, grassMat);
+      rightGrass.position.set(ROAD_WIDTH / 2 + 30, 0.01, 0);
+      rightGrass.receiveShadow = true;
+      segGroup.add(rightGrass);
 
       scene.add(segGroup);
       roadSegments.push(segGroup);
@@ -420,6 +392,51 @@ export default function CNGGameCanvas() {
 
     const trafficList: SimTraffic[] = [];
     const busColors = ["#c0392b", "#2980b9", "#d35400", "#16a085"];
+
+    const createBengaliTruckSignTexture = (text: string): THREE.CanvasTexture => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 256;
+      canvas.height = 128;
+      const ctx = canvas.getContext("2d")!;
+
+      // Background - warm cream/yellow
+      ctx.fillStyle = "#f5d76e";
+      ctx.fillRect(0, 0, 256, 128);
+
+      // Decorative red border
+      ctx.strokeStyle = "#c0392b";
+      ctx.lineWidth = 6;
+      ctx.strokeRect(4, 4, 248, 120);
+
+      // Inner green accent border
+      ctx.strokeStyle = "#27ae60";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(12, 12, 232, 104);
+
+      // Decorative flower patterns (simple dots)
+      ctx.fillStyle = "#e74c3c";
+      for (let dx = 30; dx < 240; dx += 40) {
+        ctx.beginPath(); ctx.arc(dx, 20, 5, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // Main Bengali text
+      ctx.fillStyle = "#1a1a1a";
+      ctx.font = "bold 28px serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, 128, 64);
+
+      // Bottom decorative strip
+      ctx.fillStyle = "#c0392b";
+      ctx.fillRect(0, 108, 256, 20);
+      ctx.fillStyle = "#f9f9f9";
+      ctx.font = "12px serif";
+      ctx.fillText("বাংলাদেশ • Bangladesh", 128, 118);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texturesToDispose.push(texture);
+      return texture;
+    };
 
     const createTrafficVehicle = (
       type: "bus" | "rickshaw" | "battery_rickshaw" | "bike" | "car",
@@ -450,6 +467,30 @@ export default function CNGGameCanvas() {
         const win = new THREE.Mesh(winGeo, blackMat);
         win.position.y = 2.2;
         group.add(win);
+
+        // Bengali sign panel on back of bus
+        const signTexts = ["মা-বাবার দোয়া", "আল্লাহর রহমত", "বাড়ি ফিরব", "এগিয়ে যাও", "সবুর করুন", "খোদার মেহেরবান"];
+        const signText = signTexts[Math.floor(Math.random() * signTexts.length)];
+        const signTexture = createBengaliTruckSignTexture(signText);
+        const signMat = regMat(new THREE.MeshBasicMaterial({ map: signTexture }));
+        const signGeo = regGeo(new THREE.PlaneGeometry(2.2, 1.0));
+        const signMesh = new THREE.Mesh(signGeo, signMat);
+        signMesh.position.set(0, 2.0, -5.35); // back of bus
+        signMesh.rotation.y = Math.PI; // face backward (toward camera)
+        group.add(signMesh);
+
+        // Decorative colored stripes on bus sides
+        const stripeColors = ["#c0392b", "#f39c12", "#27ae60"];
+        stripeColors.forEach((col, si) => {
+          const stripeMat = regMat(new THREE.MeshStandardMaterial({ color: col }));
+          const stripeGeo = regGeo(new THREE.BoxGeometry(0.05, 0.3, 10.5));
+          const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+          stripe.position.set(-1.35, 0.9 + si * 0.35, 0);
+          group.add(stripe);
+          const stripeR = new THREE.Mesh(stripeGeo, stripeMat);
+          stripeR.position.set(1.35, 0.9 + si * 0.35, 0);
+          group.add(stripeR);
+        });
       } else if (type === "battery_rickshaw") {
         // ঢাকা Tesla: Battery-powered rickshaw with neon body, heavy battery block, LED light
         width = 1.3;
@@ -1024,8 +1065,8 @@ export default function CNGGameCanvas() {
         dirLight.color.set("#7090b0");
       } else {
         // Sunny: normal
-        scene.fog = new THREE.FogExp2("#161b22", 0.012);
-        scene.background = new THREE.Color("#161b22");
+        scene.fog = new THREE.FogExp2("#e8925a", 0.008);
+        scene.background = new THREE.Color("#e8925a");
         ambientLight.color.set("#e0e6ed");
         ambientLight.intensity = 0.7;
         dirLight.color.set("#fff5d6");
@@ -1068,6 +1109,7 @@ export default function CNGGameCanvas() {
 
       geometriesToDispose.forEach((g) => g.dispose());
       materialsToDispose.forEach((m) => m.dispose());
+      texturesToDispose.forEach((t) => t.dispose());
       renderer.dispose();
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
