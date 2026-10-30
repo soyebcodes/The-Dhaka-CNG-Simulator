@@ -1,19 +1,19 @@
 export type DestinationId =
   | "farmgate"
-  | "mirpur10"
-  | "dhanmondi27"
-  | "gulshan1"
-  | "old_dhaka"
-  | "shahbag"
   | "motijheel"
-  | "banani";
+  | "new_market"
+  | "sadarghat"
+  | "baitul_mukarram"
+  | "shahbag"
+  | "dhaka_university"
+  | "gulistan";
 
 export interface Destination {
   id: DestinationId;
   nameBn: string;
   distanceMeters: number;
   baseFare: number;
-  zoneType: "market" | "residential" | "vip" | "congested";
+  zoneType: "market" | "residential" | "commercial" | "cultural";
 }
 
 export type WeatherType = "sunny" | "rainy";
@@ -23,8 +23,8 @@ export interface Passenger {
   nameBn: string;
   avatar: string;
   dialogueBn: string;
-  driverRoastBn: string;
-  roastTopic: "rain" | "meter" | "garage" | "waterlog" | "traffic" | "theft" | "accident" | "tesla" | "vip";
+  driverReplyBn: string;
+  topicTag: string;
   pickupDistance: number;
   dropDistance: number;
   destination: Destination;
@@ -32,14 +32,12 @@ export interface Passenger {
   isUrgent: boolean;
   patienceSec: number;
   isRainOnly?: boolean;
-  streetAlert?: string; // Breaking news banner shown when passenger is picked up
 }
 
 export type CheckpointType =
-  | "police_sergeant"
-  | "boro_bhai_chanda"
-  | "flyover_toll"
-  | "vip_protocol";
+  | "traffic_police"
+  | "railway_crossing"
+  | "moholla_club";
 
 export interface Checkpoint {
   id: string;
@@ -55,7 +53,7 @@ export interface Checkpoint {
 
 export interface TrafficVehicle {
   id: number;
-  type: "bus" | "rickshaw" | "battery_rickshaw" | "cng" | "bike" | "car";
+  type: "bus" | "rickshaw" | "baby_taxi" | "tempo" | "vintage_car";
   lane: number;
   z: number;
   speed: number;
@@ -70,8 +68,8 @@ export interface CNGStats {
   acceleration: number;
   handling: number;
   driftFactor: number;
-  gasPressureBar: number; // 0 to 200 bar
-  maxGas: number;
+  fuelLiter: number;
+  maxFuel: number;
 }
 
 export interface GameMetrics {

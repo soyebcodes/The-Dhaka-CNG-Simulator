@@ -92,18 +92,18 @@ export default function CNGGameCanvas() {
     const cngGroup = new THREE.Group();
     scene.add(cngGroup);
 
-    // CNG Green Body
+    // 80s Vintage Two-Stroke Baby Taxi Body (Matte Black with Classic Yellow Top)
     const cngBodyMat = regMat(
       new THREE.MeshStandardMaterial({
-        color: "#1e824c", // Iconic Dhaka Green
-        roughness: 0.35,
-        metalness: 0.1,
+        color: "#181818", // 80s Dhaka Two-Stroke Baby Taxi Black
+        roughness: 0.5,
+        metalness: 0.2,
       })
     );
     const cngYellowRoofMat = regMat(
       new THREE.MeshStandardMaterial({
-        color: "#f4d03f", // Yellow hood/canvas roof
-        roughness: 0.6,
+        color: "#e5a93c", // Vintage 80s Mustard Yellow Roof
+        roughness: 0.65,
       })
     );
     const metalMat = regMat(
@@ -388,21 +388,31 @@ export default function CNGGameCanvas() {
       speed: number;
       width: number;
       length: number;
+      // Fly-away crash physics (special for battery_rickshaw / Dhaka Tesla)
+      isFlying?: boolean;
+      flyVelX?: number;
+      flyVelY?: number;
+      flyVelZ?: number;
+      flyRotX?: number;
+      flyRotY?: number;
+      flyRotZ?: number;
+      flyTimer?: number;
+      hasCrashLanded?: boolean;
     }
 
     const trafficList: SimTraffic[] = [];
     const busColors = ["#c0392b", "#2980b9", "#d35400", "#16a085"];
 
-    // --- Bangla Rickshaw Hood Banner (cinema poster / মায়ের আশীর্বাদ style) ---
+    // --- 80s Dhaka Cinema & Rickshaw Art Hood Banners ---
     const RICKSHAW_BANNER_TEXTS = [
-      { main: "মায়ের আশীর্বাদ", sub: "— ঈশ্বর রক্ষা করুন —" },
-      { main: "স্বপ্নের রাজকন্যা", sub: "নতুন বাংলা ছবি" },
-      { main: "আল্লাহর দান", sub: "বিসমিল্লাহির রাহমানির রাহিম" },
-      { main: "ভালোবাসার টান", sub: "হৃদয়ের গল্প" },
-      { main: "বাবার স্বপ্ন", sub: "একটি সত্যিকারের কাহিনী" },
-      { main: "দেশের মাটি", sub: "সোনার বাংলা আমার বাংলা" },
-      { main: "নষ্ট ছেলে", sub: "রোমাঞ্চকর অ্যাকশন ছবি" },
-      { main: "প্রেমের আগুন", sub: "১৮+ শুধুমাত্র বড়দের জন্য" },
+      { main: "ছুটির ঘণ্টা", sub: "আশির দশকের কালজয়ী চলচ্চিত্র" },
+      { main: "মায়ের আশীর্বাদ", sub: "— খোদা হাফেজ —" },
+      { main: "বেদের মেয়ে জোছনা", sub: "রেকর্ডভাঙা বাংলা ছায়াছবি" },
+      { main: "নসীব", sub: "রাজ্জাক ও শাবানা অভিনীত" },
+      { main: "রংবাজ", sub: "ঢাকা শহরের প্রথম অ্যাকশন ছবি" },
+      { main: "আল্লাহ ভরসা", sub: "সততাই সর্বোৎকৃষ্ট পন্থা" },
+      { main: "সুজন সখী", sub: "ফারুক ও কবরীর অমর প্রেমগাঁথা" },
+      { main: "সোনার তরী", sub: "বাংলাদেশ বেতার ও চলচ্চিত্র" },
     ];
 
     const createRickshawBannerTexture = (idx: number): THREE.CanvasTexture => {
@@ -527,10 +537,10 @@ export default function CNGGameCanvas() {
       ctx.fillStyle = "#ffd700";
       ctx.fillText(entry.sub, 258, 178);
 
-      // === BOTTOM TAG: director / producer style ===
+      // === BOTTOM TAG: 80s Dhaka Cinema banner style ===
       ctx.fillStyle = "#ffffff";
       ctx.font = "14px monospace";
-      ctx.fillText("রিকশা প্রোডাকশন্স • ঢাকা", 258, 203);
+      ctx.fillText("গুলিস্তান ও মধুমিতা সিনেমা • ঢাকা ১৯৮৫", 258, 203);
 
       const texture = new THREE.CanvasTexture(canvas);
       texturesToDispose.push(texture);
@@ -614,8 +624,8 @@ export default function CNGGameCanvas() {
         win.position.y = 2.2;
         group.add(win);
 
-        // Bengali sign panel on back of bus
-        const signTexts = ["মা-বাবার দোয়া", "আল্লাহর রহমত", "বাড়ি ফিরব", "এগিয়ে যাও", "সবুর করুন", "খোদার মেহেরবান"];
+        // 80s Dhaka Cinema Banner on back of bus
+        const signTexts = ["ছুটির ঘণ্টা", "বেদের মেয়ে জোছনা", "আল্লাহ ভরসা", "মা-বাবার দোয়া", "রংবাজ", "নসীব"];
         const signText = signTexts[Math.floor(Math.random() * signTexts.length)];
         const signTexture = createBengaliTruckSignTexture(signText);
         const signMat = regMat(new THREE.MeshBasicMaterial({ map: signTexture }));
@@ -638,50 +648,50 @@ export default function CNGGameCanvas() {
           group.add(stripeR);
         });
       } else if (type === "battery_rickshaw") {
-        // ঢাকা Tesla: Battery-powered rickshaw with neon body, heavy battery block, LED light
-        width = 1.3;
-        length = 2.4;
-        speed = 28; // Fast and reckless!
-        const teslaMat = regMat(
+        // 80s Dhaka Classic Wooden Tempo / Passenger Auto
+        width = 1.4;
+        length = 2.6;
+        speed = 26;
+        const tempoMat = regMat(
           new THREE.MeshStandardMaterial({
-            color: Math.random() > 0.5 ? "#00e5ff" : "#ff007f", // Cyberpunk Dhaka Neon
-            roughness: 0.35,
-            metalness: 0.3,
+            color: Math.random() > 0.5 ? "#2980b9" : "#d35400", // Vintage 80s Blue & Orange
+            roughness: 0.6,
+            metalness: 0.1,
           })
         );
-        const seat = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.05, 0.45, 0.85)), teslaMat);
+        const seat = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.15, 0.5, 1.1)), tempoMat);
         seat.position.y = 0.6;
         group.add(seat);
 
-        // Battery block under seat
-        const batteryMat = regMat(new THREE.MeshStandardMaterial({ color: "#1c2833", roughness: 0.8 }));
-        const battery = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.85, 0.35, 0.55)), batteryMat);
-        battery.position.set(0, 0.25, 0);
-        group.add(battery);
+        // Wooden bench body
+        const woodMat = regMat(new THREE.MeshStandardMaterial({ color: "#5c3818", roughness: 0.85 }));
+        const woodenFrame = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.0, 0.4, 0.8)), woodMat);
+        woodenFrame.position.set(0, 0.3, 0);
+        group.add(woodenFrame);
 
-        // Hood
-        const hood = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.58, 0.58, 0.95, 8)), teslaMat);
+        // Canopy Hood
+        const hood = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.62, 0.62, 1.05, 8)), tempoMat);
         hood.rotation.z = Math.PI / 2;
         hood.position.set(0, 1.25, -0.1);
         group.add(hood);
 
-        // Bright LED headlight
-        const ledMat = regMat(new THREE.MeshBasicMaterial({ color: "#00ffff" }));
+        // Classic round halogen headlight
+        const ledMat = regMat(new THREE.MeshBasicMaterial({ color: "#fff3cc" }));
         const led = new THREE.Mesh(regGeo(new THREE.SphereGeometry(0.12, 8, 8)), ledMat);
         led.position.set(0, 0.85, 1.1);
         group.add(led);
 
-        // === RICKSHAW CINEMA BANNER on back hood panel (মায়ের আশীর্বাদ style) ===
+        // === 80s Cinema Banner on the back of tempo ===
         const bannerTex = createRickshawBannerTexture(rickshawBannerCounter++);
         const bannerMat = regMat(new THREE.MeshBasicMaterial({ map: bannerTex, side: THREE.FrontSide }));
         const bannerGeo = regGeo(new THREE.PlaneGeometry(1.1, 0.9));
         const bannerMesh = new THREE.Mesh(bannerGeo, bannerMat);
-        bannerMesh.position.set(0, 1.25, 0.55); // front face of hood, facing camera
-        bannerMesh.rotation.y = Math.PI;         // face backward toward chasing camera
+        bannerMesh.position.set(0, 1.25, 0.55); // back face toward camera
+        bannerMesh.rotation.y = Math.PI;
         group.add(bannerMesh);
 
-        // Gold trim strips framing the banner (top & bottom)
-        const goldTrimMat = regMat(new THREE.MeshBasicMaterial({ color: "#ffd700" }));
+        // Classic metal trim
+        const goldTrimMat = regMat(new THREE.MeshBasicMaterial({ color: "#d4ac0d" }));
         const trimGeo = regGeo(new THREE.BoxGeometry(1.15, 0.05, 0.04));
         const trimTop = new THREE.Mesh(trimGeo, goldTrimMat);
         trimTop.position.set(0, 1.72, 0.54);
@@ -690,8 +700,8 @@ export default function CNGGameCanvas() {
         trimBot.position.set(0, 0.78, 0.54);
         group.add(trimBot);
 
-        // Colorful tassel fringe danglers below banner (classic BD rickshaw decoration)
-        const tasselColors = ["#e74c3c", "#f1c40f", "#27ae60", "#3498db", "#9b59b6"];
+        // Classic Dhaka Rickshaw Fringe Tassels
+        const tasselColors = ["#c0392b", "#f39c12", "#27ae60", "#2980b9", "#8e44ad"];
         tasselColors.forEach((col, ti) => {
           const tMat = regMat(new THREE.MeshBasicMaterial({ color: col }));
           const tGeo = regGeo(new THREE.BoxGeometry(0.045, 0.2, 0.03));
@@ -1051,6 +1061,55 @@ export default function CNGGameCanvas() {
       }
 
       trafficList.forEach((tr) => {
+        // --- 0. Tesla Flying & Tumbling Launch Animation ---
+        if (tr.isFlying) {
+          const gravity = 22;
+          tr.flyVelY = (tr.flyVelY ?? 0) - gravity * dt;
+          tr.flyTimer = (tr.flyTimer ?? 0) + dt;
+          tr.laneX += (tr.flyVelX ?? 0) * dt;
+          tr.z += (tr.flyVelZ ?? 0) * dt;
+
+          tr.flyRotX = (tr.flyRotX ?? 0) + 7.5 * dt; // violent front flip
+          tr.flyRotZ = (tr.flyRotZ ?? 0) + 9.0 * dt; // wild barrel roll
+          tr.flyRotY = (tr.flyRotY ?? 0) + 4.0 * dt; // spin
+
+          const currentY = tr.mesh.position.y;
+          const nextY = Math.max(0, currentY + (tr.flyVelY ?? 0) * dt);
+
+          tr.mesh.position.set(tr.laneX, nextY, tr.z);
+          tr.mesh.rotation.set(tr.flyRotX, tr.flyRotY, tr.flyRotZ);
+
+          // Hard crash impact with ground
+          if (nextY <= 0.05 && (tr.flyTimer ?? 0) > 0.25 && !tr.hasCrashLanded) {
+            tr.hasCrashLanded = true;
+            tr.flyVelY = Math.abs(tr.flyVelY ?? 0) * 0.45; // bounce up
+            tr.flyVelX = (tr.flyVelX ?? 0) * 0.35;
+            tr.flyVelZ = (tr.flyVelZ ?? 0) * 0.35;
+            crashShake = 0.4;
+            cngAudio.crash();
+          }
+
+          // Despawn & respawn far ahead after airborne crash spectacle
+          if ((tr.flyTimer ?? 0) > 3.2) {
+            tr.isFlying = false;
+            tr.hasCrashLanded = false;
+            tr.flyTimer = 0;
+            tr.flyVelX = 0;
+            tr.flyVelY = 0;
+            tr.flyVelZ = 0;
+            tr.flyRotX = 0;
+            tr.flyRotY = 0;
+            tr.flyRotZ = 0;
+            tr.mesh.rotation.set(0, 0, 0);
+            tr.z = 240 + Math.random() * 80;
+            const lanes = [-6.0, -2.2, 2.2, 6.0];
+            tr.laneX = lanes[Math.floor(Math.random() * lanes.length)];
+            tr.mesh.position.set(tr.laneX, 0, tr.z);
+          }
+
+          return; // Skip standard driving collision while in flight
+        }
+
         // Traffic moves forward relative to road
         const trRelativeSpeed = tr.speed - currentSpeed;
         // Battery rickshaws (Dhaka Tesla) weave slightly erratically
@@ -1082,99 +1141,89 @@ export default function CNGGameCanvas() {
         ) {
           cngAudio.crash();
           cngAudio.yell();
-          collisionCooldown = 1.0; // Cooldown to prevent lock
-          crashShake = 0.55; // Camera shake
+          collisionCooldown = 0.8; // Cooldown to prevent lock
+          crashShake = 0.65; // Camera shake
           spinRecoil = (playerPos.x > tr.mesh.position.x ? 1 : -1) * 0.85; // Spin & skid!
           const speedBefore = currentSpeed;
-          currentSpeed = -8; // Bounce backwards!
+          currentSpeed = -6; // Bounce backwards!
           playerPos.x += playerPos.x > tr.mesh.position.x ? 1.5 : -1.5;
           playerPos.x = THREE.MathUtils.clamp(playerPos.x, -maxRoadOffset, maxRoadOffset);
 
-          let penalty = speedBefore > 38 ? 150 : 80;
-          let crashMsg = `💥 ধপাস! মারাত্মক সংঘর্ষ! সিএনজি মেরামত খরচ ৳ ${penalty}!`;
+          let penalty = speedBefore > 38 ? 35 : 15;
+          let crashMsg = `💥 মৃদু ধাক্কা! সামনের গাড়ির বাতি ক্ষতিগ্রস্ত (-৳ ${penalty})`;
 
           if (tr.type === "battery_rickshaw") {
-            penalty = 110;
-            crashMsg = `💥 ঢাকা Tesla (ব্যাটারি রিকশা) তে ধাক্কা! জনতা: "ছাইড়া দেন মামা গরীব মানুষ!" (-৳ ${penalty})`;
+            // High-flying 80s Tempo stunt launch
+            tr.isFlying = true;
+            tr.flyTimer = 0;
+            tr.hasCrashLanded = false;
+            const impactForce = Math.max(Math.abs(speedBefore), 28);
+            const sideDir = tr.mesh.position.x >= playerPos.x ? 1 : -1;
+            
+            tr.flyVelY = 14 + impactForce * 0.16;          // Upward trajectory
+            tr.flyVelX = sideDir * (7 + impactForce * 0.14); // Sideways into grass
+            tr.flyVelZ = 12 + impactForce * 0.28;          // Forward down the avenue
+            tr.flyRotX = Math.random() * 2;
+            tr.flyRotY = Math.random() * 2;
+            tr.flyRotZ = Math.random() * 2;
+
+            penalty = 0; // Stunt bonus
+            crashMsg = `🚖 আশির দশকের টেম্পো ডিগবাজি খেয়েছে! সড়কের পাশে দর্শকরা হাততালি দিচ্ছেন!`;
           } else if (tr.type === "bus") {
-            penalty = 160;
-            crashMsg = `💥 লোকাল বাসের সাথে ধাক্কা! ড্রাইভার বলছে: "আমার কোনো দোষ নাই!" (-৳ ${penalty})`;
+            penalty = 40;
+            crashMsg = `💥 মুড়ির টিন বাসের পেছনে ধাক্কা! কনডাক্টর: "আস্তে চলেন ভাই!" (-৳ ${penalty})`;
           } else if (tr.type === "bike") {
-            penalty = 90;
-            crashMsg = `💥 বাইকারের সাথে ধাক্কা! "মামা পাঠাও ট্রিপে ছিলাম, হেলমেট ভাঙলেন!" (-৳ ${penalty})`;
+            penalty = 20;
+            crashMsg = `💥 মোটরসাইকেলের সাথে সংঘাত! সাইড মিরর ঠিক করতে খরচ (-৳ ${penalty})`;
           } else if (tr.type === "car") {
-            penalty = 140;
-            crashMsg = `💥 প্রাইভেট কারে ধাক্কা! "বউরে নিয়া ডেটে যাইতাসি, স্ক্র্যাচ মারলেন!" (-৳ ${penalty})`;
+            penalty = 35;
+            crashMsg = `💥 টয়োটা করোলা গাড়ির সাথে সংঘর্ষ! বাতি ক্ষতিগ্রস্ত (-৳ ${penalty})`;
           } else if (tr.type === "rickshaw") {
-            penalty = 80;
-            crashMsg = `💥 রিকশায় ধাক্কা! রিকশাওয়ালা: "মামা প্যাডেল ভাইঙ্গা গেল!" (-৳ ${penalty})`;
+            penalty = 15;
+            crashMsg = `💥 কাঠের রিকশায় হালকা ধাক্কা! রিকশাচালক হাত তুলে সংকেত দিলেন (-৳ ${penalty})`;
           }
 
           store.recordCrash(penalty, crashMsg);
         }
       });
 
-      // 6. Trigger Checkpoint Events (Chanda / Traffic Police)
+      // 6. Trigger Checkpoint Events (Traffic Police / Railway Crossing / Moholla Club)
       const currentDist = store.distanceTraveledMeters;
       if (currentDist > nextCheckpointDistance && !store.activeCheckpoint) {
         nextCheckpointDistance = currentDist + 400 + Math.random() * 300;
         const roll = Math.random();
-        const newCp: Checkpoint = roll < 0.28
+        const newCp: Checkpoint = roll < 0.4
           ? {
               id: `cp-${Math.floor(currentDist)}`,
-              type: "police_sergeant",
+              type: "traffic_police",
               distance: currentDist,
-              titleBn: "ট্রাফিক সার্জেন্ট 🚔",
-              subBn: "মামলা না খাইতে চাইলে চা-পানির খরচ দিন!",
-              demandAmount: 300,
-              dialogueBn: "ড্রাইভার সাব! ফিটনেস সার্টিফিকেট আর রুট পারমিট দেখান! না থাকলে চা-নাস্তার ব্যবস্থা করেন!",
+              titleBn: "ট্রাফিক পুলিশ পোস্ট 👮",
+              subBn: "ফার্মগেট মোড় ট্রাফিক বক্স ও ফিটনেস তল্লাশি",
+              demandAmount: 20,
+              dialogueBn: "ড্রাইভার সাব! গাড়ির রুট পারমিট ও কাগজ দেখান। সময়মতো সংকেত মেনে চলুন।",
               passed: false,
               evaded: false,
             }
-          : roll < 0.52
+          : roll < 0.72
           ? {
               id: `cp-${Math.floor(currentDist)}`,
-              type: "boro_bhai_chanda",
+              type: "railway_crossing",
               distance: currentDist,
-              titleBn: "এলাকার বড় ভাই 😤",
-              subBn: "স্ট্যান্ড উন্নয়ন তহবিল ও ভাইদের নাস্তা বাবদ চাঁদা",
-              demandAmount: 200,
-              dialogueBn: "ঐ সিএনজি থামাও! এই এলাকায় গাড়ি চালাইবা আর বড় ভাইরে সালাম দেবা না? মহল্লার উন্নয়নে একটু দিয়া যাও!",
-              passed: false,
-              evaded: false,
-            }
-          : roll < 0.68
-          ? {
-              id: `cp-${Math.floor(currentDist)}`,
-              type: "boro_bhai_chanda",
-              distance: currentDist,
-              titleBn: "মহল্লা ফুটবল টুর্নামেন্ট ⚽",
-              subBn: "আন্তঃমহল্লা ফুটবল স্পনসরশিপ চাঁদা",
-              demandAmount: 150,
-              dialogueBn: "মামা থামেন! মহল্লার ফুটবল টুর্নামেন্ট আছে — জার্সি কিনতে টাকা নাই! স্পনসর করেন, আপনার নাম লাগাব!",
-              passed: false,
-              evaded: false,
-            }
-          : roll < 0.82
-          ? {
-              id: `cp-${Math.floor(currentDist)}`,
-              type: "flyover_toll",
-              distance: currentDist,
-              titleBn: "ফ্লাইওভার টোল প্লাজা 🛣️",
-              subBn: "সরকারি টোল — ফ্লাইওভার রক্ষণাবেক্ষণ ফি",
-              demandAmount: 100,
-              dialogueBn: "মামা, এই ফ্লাইওভার সরকারি। টোল দিয়া যান — না দিলে আটকায়া রাখব!",
+              titleBn: "তেজগাঁও লেভেল ক্রসিং 🚦",
+              subBn: "রেলগেট বন্ধ — ট্রেনের হুইসেল বাজছে",
+              demandAmount: 15,
+              dialogueBn: "রেলগেট ফেলা হয়েছে! ট্রেন পার না হওয়া পর্যন্ত লাইনে দাঁড়ান।",
               passed: false,
               evaded: false,
             }
           : {
               id: `cp-${Math.floor(currentDist)}`,
-              type: "vip_protocol",
+              type: "moholla_club",
               distance: currentDist,
-              titleBn: "পূজা/ঈদ চাঁদা কমিটি 🪔",
-              subBn: "বার্ষিক উৎসব চাঁদা — অংশগ্রহণ বাধ্যতামূলক",
-              demandAmount: 180,
-              dialogueBn: "ভাই! উৎসবের চাঁদা! গরীব-বড়লোক সবাই দেয়, আপনি কি দেবেন না?",
+              titleBn: "মহল্লা ক্রীড়া সংসদ ⚽",
+              subBn: "আবাহনী-মোহামেডান প্রীতি ম্যাচ সহায়তা বক্স",
+              demandAmount: 10,
+              dialogueBn: "ড্রাইভার ভাই! মহল্লার বার্ষিক ফুটবল টুর্নামেন্টের জন্য শুভেচ্ছা অনুদান দিন!",
               passed: false,
               evaded: false,
             };
