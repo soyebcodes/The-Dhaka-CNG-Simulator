@@ -393,6 +393,152 @@ export default function CNGGameCanvas() {
     const trafficList: SimTraffic[] = [];
     const busColors = ["#c0392b", "#2980b9", "#d35400", "#16a085"];
 
+    // --- Bangla Rickshaw Hood Banner (cinema poster / মায়ের আশীর্বাদ style) ---
+    const RICKSHAW_BANNER_TEXTS = [
+      { main: "মায়ের আশীর্বাদ", sub: "— ঈশ্বর রক্ষা করুন —" },
+      { main: "স্বপ্নের রাজকন্যা", sub: "নতুন বাংলা ছবি" },
+      { main: "আল্লাহর দান", sub: "বিসমিল্লাহির রাহমানির রাহিম" },
+      { main: "ভালোবাসার টান", sub: "হৃদয়ের গল্প" },
+      { main: "বাবার স্বপ্ন", sub: "একটি সত্যিকারের কাহিনী" },
+      { main: "দেশের মাটি", sub: "সোনার বাংলা আমার বাংলা" },
+      { main: "নষ্ট ছেলে", sub: "রোমাঞ্চকর অ্যাকশন ছবি" },
+      { main: "প্রেমের আগুন", sub: "১৮+ শুধুমাত্র বড়দের জন্য" },
+    ];
+
+    const createRickshawBannerTexture = (idx: number): THREE.CanvasTexture => {
+      const entry = RICKSHAW_BANNER_TEXTS[idx % RICKSHAW_BANNER_TEXTS.length];
+      const canvas = document.createElement("canvas");
+      canvas.width = 512;
+      canvas.height = 256;
+      const ctx = canvas.getContext("2d")!;
+
+      // === BACKGROUND: vivid cinema poster gradient ===
+      const bgGrad = ctx.createLinearGradient(0, 0, 512, 256);
+      const palettes: [string, string, string][] = [
+        ["#6a0dad", "#c0392b", "#f39c12"], // purple → red → gold
+        ["#003366", "#e74c3c", "#f1c40f"], // navy → red → yellow
+        ["#1a5276", "#117a65", "#f9e79f"], // teal gradient
+        ["#7b241c", "#f0b27a", "#2c3e50"], // warm red sunset
+        ["#145a32", "#f4d03f", "#a93226"], // green gold red
+      ];
+      const pal = palettes[idx % palettes.length];
+      bgGrad.addColorStop(0, pal[0]);
+      bgGrad.addColorStop(0.5, pal[1]);
+      bgGrad.addColorStop(1, pal[2]);
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, 512, 256);
+
+      // === OUTER ORNATE BORDER (double line with corner squares) ===
+      ctx.strokeStyle = "#ffd700";
+      ctx.lineWidth = 8;
+      ctx.strokeRect(6, 6, 500, 244);
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(16, 16, 480, 224);
+
+      // Corner decorative squares
+      ["#ffd700", "#e74c3c"].forEach((col, ci) => {
+        ctx.fillStyle = col;
+        const sz = 14 - ci * 5;
+        ctx.fillRect(10, 10, sz, sz);
+        ctx.fillRect(502 - sz, 10, sz, sz);
+        ctx.fillRect(10, 246 - sz, sz, sz);
+        ctx.fillRect(502 - sz, 246 - sz, sz, sz);
+      });
+
+      // === DECORATIVE FLOWER BAND (top) ===
+      ctx.fillStyle = "#ffd700";
+      ctx.fillRect(20, 20, 472, 22);
+      ctx.fillStyle = "#c0392b";
+      for (let fx = 36; fx < 490; fx += 28) {
+        // petal flower: 4 ellipses + center dot
+        ctx.save();
+        ctx.translate(fx, 31);
+        for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 2) {
+          ctx.save();
+          ctx.rotate(angle);
+          ctx.scale(1, 0.4);
+          ctx.beginPath();
+          ctx.arc(0, -6, 5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.fillStyle = "#fff";
+        ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#c0392b";
+        ctx.restore();
+      }
+
+      // === DECORATIVE FLOWER BAND (bottom) ===
+      ctx.fillStyle = "#ffd700";
+      ctx.fillRect(20, 214, 472, 22);
+      ctx.fillStyle = "#27ae60";
+      for (let fx = 36; fx < 490; fx += 28) {
+        ctx.save();
+        ctx.translate(fx, 225);
+        for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 2) {
+          ctx.save(); ctx.rotate(angle); ctx.scale(1, 0.4);
+          ctx.beginPath(); ctx.arc(0, -6, 5, 0, Math.PI * 2); ctx.fill();
+          ctx.restore();
+        }
+        ctx.fillStyle = "#fff";
+        ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#27ae60";
+        ctx.restore();
+      }
+
+      // === LEFT & RIGHT SIDE STAR COLUMNS ===
+      ctx.fillStyle = "#ffd700";
+      for (let sy = 55; sy < 210; sy += 30) {
+        // 5-point star helper
+        const drawStar = (cx: number, cy: number, r: number) => {
+          ctx.beginPath();
+          for (let pt = 0; pt < 5; pt++) {
+            const a = (pt * 4 * Math.PI) / 5 - Math.PI / 2;
+            const ia = a + (2 * Math.PI) / 10;
+            ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+            ctx.lineTo(cx + Math.cos(ia) * r * 0.4, cy + Math.sin(ia) * r * 0.4);
+          }
+          ctx.closePath();
+          ctx.fill();
+        };
+        drawStar(34, sy, 9);
+        drawStar(478, sy, 9);
+      }
+
+      // === MAIN TITLE TEXT (drop shadow + white) ===
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      // Shadow
+      ctx.fillStyle = "rgba(0,0,0,0.7)";
+      ctx.font = "bold 56px serif";
+      ctx.fillText(entry.main, 260, 122);
+      // Glow outline
+      ctx.strokeStyle = "#ffd700";
+      ctx.lineWidth = 4;
+      ctx.strokeText(entry.main, 258, 120);
+      // Main fill
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(entry.main, 258, 120);
+
+      // === SUBTITLE TEXT ===
+      ctx.font = "italic 22px serif";
+      ctx.fillStyle = "#ffd700";
+      ctx.fillText(entry.sub, 258, 178);
+
+      // === BOTTOM TAG: director / producer style ===
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "14px monospace";
+      ctx.fillText("রিকশা প্রোডাকশন্স • ঢাকা", 258, 203);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texturesToDispose.push(texture);
+      return texture;
+    };
+
+    let rickshawBannerCounter = 0;
+
     const createBengaliTruckSignTexture = (text: string): THREE.CanvasTexture => {
       const canvas = document.createElement("canvas");
       canvas.width = 256;
@@ -524,6 +670,35 @@ export default function CNGGameCanvas() {
         const led = new THREE.Mesh(regGeo(new THREE.SphereGeometry(0.12, 8, 8)), ledMat);
         led.position.set(0, 0.85, 1.1);
         group.add(led);
+
+        // === RICKSHAW CINEMA BANNER on back hood panel (মায়ের আশীর্বাদ style) ===
+        const bannerTex = createRickshawBannerTexture(rickshawBannerCounter++);
+        const bannerMat = regMat(new THREE.MeshBasicMaterial({ map: bannerTex, side: THREE.FrontSide }));
+        const bannerGeo = regGeo(new THREE.PlaneGeometry(1.1, 0.9));
+        const bannerMesh = new THREE.Mesh(bannerGeo, bannerMat);
+        bannerMesh.position.set(0, 1.25, 0.55); // front face of hood, facing camera
+        bannerMesh.rotation.y = Math.PI;         // face backward toward chasing camera
+        group.add(bannerMesh);
+
+        // Gold trim strips framing the banner (top & bottom)
+        const goldTrimMat = regMat(new THREE.MeshBasicMaterial({ color: "#ffd700" }));
+        const trimGeo = regGeo(new THREE.BoxGeometry(1.15, 0.05, 0.04));
+        const trimTop = new THREE.Mesh(trimGeo, goldTrimMat);
+        trimTop.position.set(0, 1.72, 0.54);
+        group.add(trimTop);
+        const trimBot = new THREE.Mesh(trimGeo, goldTrimMat);
+        trimBot.position.set(0, 0.78, 0.54);
+        group.add(trimBot);
+
+        // Colorful tassel fringe danglers below banner (classic BD rickshaw decoration)
+        const tasselColors = ["#e74c3c", "#f1c40f", "#27ae60", "#3498db", "#9b59b6"];
+        tasselColors.forEach((col, ti) => {
+          const tMat = regMat(new THREE.MeshBasicMaterial({ color: col }));
+          const tGeo = regGeo(new THREE.BoxGeometry(0.045, 0.2, 0.03));
+          const tassel = new THREE.Mesh(tGeo, tMat);
+          tassel.position.set(-0.5 + ti * 0.25, 0.66, 0.54);
+          group.add(tassel);
+        });
       } else if (type === "rickshaw") {
         width = 1.2;
         length = 2.2;
