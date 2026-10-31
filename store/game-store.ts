@@ -470,6 +470,11 @@ export const useGameStore = create<GameState>((set, get) => ({
         tripsCompleted: metrics.tripsCompleted + 1,
       },
     });
+
+    // Auto-dismiss trip complete toast after 2.8 seconds so it doesn't block the road
+    setTimeout(() => {
+      set({ tripCompleteToast: null });
+    }, 2800);
   },
 
   setCheckpoint: (cp: Checkpoint) => {
@@ -582,7 +587,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { isChased, chaseTimerSec, speedKmh, metrics } = get();
     if (!isChased) return;
 
-    if (speedKmh > 42) {
+    if (speedKmh > 28) {
       const remaining = chaseTimerSec - dtSec;
       if (remaining <= 0) {
         cngAudio.cash();

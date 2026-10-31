@@ -186,15 +186,16 @@ export default function CNGHud() {
         </div>
       </div>
 
-      {/* Middle: Crash / Notification Alert */}
-      <div className="relative z-10 flex flex-col items-center gap-2 px-2">
+      {/* Middle Alerts Area: Positioned high up away from road center, with subtle opacity */}
+      <div className="relative z-10 flex flex-col items-center gap-1.5 px-2 pointer-events-none -mt-4">
         <AnimatePresence>
           {crashAlert && (
             <motion.div
-              initial={{ scale: 0.8, opacity: 0, y: -10 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.8, opacity: 0, y: -10 }}
-              className="rounded-2xl border border-amber-400/60 bg-stone-900/90 px-4 py-2.5 text-center text-xs font-bold text-amber-100 shadow-2xl backdrop-blur-xl"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 0.8, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25 }}
+              className="rounded-xl border border-amber-400/30 bg-stone-900/60 px-3.5 py-1.5 text-center text-[11px] font-semibold text-amber-100 shadow-md backdrop-blur-sm"
             >
               {crashAlert}
             </motion.div>
@@ -202,22 +203,23 @@ export default function CNGHud() {
 
           {tripCompleteToast && (
             <motion.div
-              initial={{ scale: 0.8, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.8, opacity: 0, y: -20 }}
-              className="flex items-center gap-2 rounded-2xl border border-emerald-400/60 bg-emerald-950/90 px-4 py-2 text-xs font-bold text-emerald-100 shadow-xl backdrop-blur-md pointer-events-auto cursor-pointer"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 0.75, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3 }}
+              className="flex items-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-950/60 px-3.5 py-1.5 text-[11px] font-medium text-emerald-100 shadow-md backdrop-blur-sm pointer-events-auto cursor-pointer hover:opacity-100 transition-opacity"
               onClick={dismissTripToast}
             >
-              <span className="text-base">{tripCompleteToast.emoji}</span>
+              <span className="text-sm">{tripCompleteToast.emoji}</span>
               <span>{tripCompleteToast.text}</span>
             </motion.div>
           )}
 
           {isChased && (
             <motion.div
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ repeat: Infinity, duration: 0.7 }}
-              className="rounded-2xl border border-rose-500/80 bg-rose-950/90 px-4 py-1.5 text-xs font-black text-rose-200 shadow-xl"
+              animate={{ opacity: [0.65, 0.9, 0.65] }}
+              transition={{ repeat: Infinity, duration: 0.8 }}
+              className="rounded-xl border border-rose-500/40 bg-rose-950/60 px-3 py-1 text-[11px] font-bold text-rose-200 shadow-md backdrop-blur-sm"
             >
               🚨 গতি বজায় রাখুন! বাকি: {Math.ceil(chaseTimerSec)} সে.
             </motion.div>

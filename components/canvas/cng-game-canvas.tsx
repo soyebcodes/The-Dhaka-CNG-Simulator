@@ -312,19 +312,27 @@ export default function CNGGameCanvas() {
       grp.add(tGrp);
     };
 
+    // --- Materials for 80s Roadside Shops, Stoppages & Garages ---
+    const woodShopMat = regMat(new THREE.MeshStandardMaterial({ color: "#7a4926", roughness: 0.9 }));
+    const tinRoofMat = regMat(new THREE.MeshStandardMaterial({ color: "#8d99ae", metalness: 0.6, roughness: 0.35 }));
+    const bannerCanvasMat = regMat(new THREE.MeshStandardMaterial({ color: "#f39c12", roughness: 0.8 }));
+    const brickMat = regMat(new THREE.MeshStandardMaterial({ color: "#a0402b", roughness: 0.95 }));
+    const concreteMat = regMat(new THREE.MeshStandardMaterial({ color: "#7f8c8d", roughness: 0.9 }));
+    const busStopRoofMat = regMat(new THREE.MeshStandardMaterial({ color: "#27ae60", roughness: 0.6 }));
+    const bypassSignMat = regMat(new THREE.MeshStandardMaterial({ color: "#16a085", roughness: 0.5 }));
+
     const roadSegments: THREE.Group[] = [];
     for (let i = 0; i < ROAD_SEGMENTS; i++) {
       const segGroup = new THREE.Group();
       segGroup.position.z = i * SEGMENT_LENGTH;
 
-      // Asphalt
+      // Asphalt / Dirt Highway surface
       const roadMesh = new THREE.Mesh(roadGeo, roadMat);
       roadMesh.receiveShadow = true;
       segGroup.add(roadMesh);
 
-      // Center Divider Railing & White Stripes
+      // Center Divider Markings
       for (let m = -SEGMENT_LENGTH / 2 + 3; m < SEGMENT_LENGTH / 2; m += 8) {
-        // Double dashed center line
         const stripeGeo = regGeo(new THREE.PlaneGeometry(0.3, 4));
         stripeGeo.rotateX(-Math.PI / 2);
         const stripeMesh1 = new THREE.Mesh(stripeGeo, roadMarkingMat);
@@ -336,7 +344,7 @@ export default function CNGGameCanvas() {
         segGroup.add(stripeMesh2);
       }
 
-      // Dirt shoulders instead of curbs and footpaths
+      // Dirt shoulders
       const shoulderMat = regMat(new THREE.MeshStandardMaterial({ color: "#b08050", roughness: 1.0 }));
       const shoulderGeo = regGeo(new THREE.PlaneGeometry(4, SEGMENT_LENGTH));
       shoulderGeo.rotateX(-Math.PI / 2);
@@ -347,13 +355,11 @@ export default function CNGGameCanvas() {
       rightShoulder.position.set(ROAD_WIDTH / 2 + 2, 0.01, 0);
       segGroup.add(rightShoulder);
 
-
       // Low-poly trees on both sides
-      for (let t = -SEGMENT_LENGTH / 2; t < SEGMENT_LENGTH / 2; t += 12 + Math.random() * 8) {
-        addTree(-ROAD_WIDTH / 2 - 5 - Math.random() * 10, t, segGroup);
-        addTree(ROAD_WIDTH / 2 + 5 + Math.random() * 10, t, segGroup);
+      for (let t = -SEGMENT_LENGTH / 2; t < SEGMENT_LENGTH / 2; t += 14 + Math.random() * 8) {
+        addTree(-ROAD_WIDTH / 2 - 7 - Math.random() * 10, t, segGroup);
+        addTree(ROAD_WIDTH / 2 + 7 + Math.random() * 10, t, segGroup);
       }
-
 
       // Tangled Electric Poles
       const poleGeo = regGeo(new THREE.CylinderGeometry(0.2, 0.25, 9, 8));
@@ -362,7 +368,124 @@ export default function CNGGameCanvas() {
       leftPole.position.set(-ROAD_WIDTH / 2 - 2, 4.5, -15);
       segGroup.add(leftPole);
 
-      // Wide green grass fields instead of buildings
+      // --- 80s Highway Stopages, Stalls, Garages & Bypass Junctions ---
+      if (i % 4 === 0) {
+        // 1. বাস স্টপেজ ও যাত্রী ছাউনি (80s Passenger Stoppage Shed)
+        const stopGroup = new THREE.Group();
+        const p1 = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.1, 0.1, 3.2, 8)), metalMat);
+        p1.position.set(-2, 1.6, -1.2);
+        stopGroup.add(p1);
+        const p2 = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.1, 0.1, 3.2, 8)), metalMat);
+        p2.position.set(2, 1.6, -1.2);
+        stopGroup.add(p2);
+        const shedRoof = new THREE.Mesh(regGeo(new THREE.BoxGeometry(4.8, 0.15, 3)), busStopRoofMat);
+        shedRoof.position.set(0, 3.2, 0);
+        shedRoof.rotation.x = 0.1;
+        stopGroup.add(shedRoof);
+        // Wooden Passenger Bench
+        const bench = new THREE.Mesh(regGeo(new THREE.BoxGeometry(3.6, 0.45, 0.7)), woodShopMat);
+        bench.position.set(0, 0.35, -0.6);
+        stopGroup.add(bench);
+        // 80s Stoppage Signboard ("যাত্রী ছাউনি • বাস স্টপ")
+        const signPost = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.08, 0.08, 3.5, 6)), concreteMat);
+        signPost.position.set(-2.8, 1.75, 1.4);
+        stopGroup.add(signPost);
+        const signBoard = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1.4, 0.7, 0.1)), bypassSignMat);
+        signBoard.position.set(-2.8, 3.1, 1.4);
+        stopGroup.add(signBoard);
+
+        // Passengers waiting at stoppage
+        const waitingPerson = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.4, 0.6, 0.3)), bannerCanvasMat);
+        waitingPerson.position.set(-0.8, 0.75, -0.6);
+        stopGroup.add(waitingPerson);
+        const waitingHead = new THREE.Mesh(regGeo(new THREE.SphereGeometry(0.16, 8, 8)), skinMat);
+        waitingHead.position.set(-0.8, 1.25, -0.6);
+        stopGroup.add(waitingHead);
+
+        stopGroup.position.set(-ROAD_WIDTH / 2 - 3.8, 0, 8);
+        segGroup.add(stopGroup);
+      } else if (i % 4 === 1) {
+        // 2. টং চায়ের দোকান ও পান-সিগারেট স্টল (80s Highway Cha Stall)
+        const chaGroup = new THREE.Group();
+        const stallBody = new THREE.Mesh(regGeo(new THREE.BoxGeometry(3.2, 2.4, 2.2)), woodShopMat);
+        stallBody.position.set(0, 1.2, 0);
+        chaGroup.add(stallBody);
+        const stallTin = new THREE.Mesh(regGeo(new THREE.BoxGeometry(3.8, 0.1, 2.8)), tinRoofMat);
+        stallTin.position.set(0, 2.5, 0.1);
+        stallTin.rotation.x = 0.12;
+        chaGroup.add(stallTin);
+        // Cha Kettle & Bench
+        const kettle = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.18, 0.22, 0.35, 8)), metalMat);
+        kettle.position.set(0.6, 1.2, 1.0);
+        chaGroup.add(kettle);
+        const customerBench = new THREE.Mesh(regGeo(new THREE.BoxGeometry(2.4, 0.4, 0.6)), woodShopMat);
+        customerBench.position.set(0, 0.25, 1.7);
+        chaGroup.add(customerBench);
+
+        // Cha Mama at counter
+        const mamaTorso = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.42, 0.55, 0.28)), regMat(new THREE.MeshStandardMaterial({ color: "#e74c3c" })));
+        mamaTorso.position.set(-0.2, 1.45, 0.5);
+        chaGroup.add(mamaTorso);
+        const mamaHead = new THREE.Mesh(regGeo(new THREE.SphereGeometry(0.16, 8, 8)), skinMat);
+        mamaHead.position.set(-0.2, 1.85, 0.5);
+        chaGroup.add(mamaHead);
+
+        chaGroup.position.set(ROAD_WIDTH / 2 + 3.6, 0, -5);
+        segGroup.add(chaGroup);
+      } else if (i % 4 === 2) {
+        // 3. মটর গ্যারেজ ও টায়ার মেরামতের দোকান (80s Motor Garage & Tyre Repair)
+        const garageGroup = new THREE.Group();
+        const gBody = new THREE.Mesh(regGeo(new THREE.BoxGeometry(4.5, 2.8, 3.2)), brickMat);
+        gBody.position.set(0, 1.4, 0);
+        garageGroup.add(gBody);
+        const gRoof = new THREE.Mesh(regGeo(new THREE.BoxGeometry(5.2, 0.12, 3.8)), tinRoofMat);
+        gRoof.position.set(0, 2.9, 0);
+        garageGroup.add(gRoof);
+
+        // Stacked Tyre pile in front
+        const tyreMat = regMat(new THREE.MeshStandardMaterial({ color: "#111111", roughness: 0.9 }));
+        const t1 = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.4, 0.4, 0.25, 12)), tyreMat);
+        t1.position.set(1.6, 0.15, 1.8);
+        garageGroup.add(t1);
+        const t2 = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.4, 0.4, 0.25, 12)), tyreMat);
+        t2.position.set(1.6, 0.4, 1.8);
+        garageGroup.add(t2);
+
+        // Ustad Mechanic working
+        const mechTorso = new THREE.Mesh(regGeo(new THREE.BoxGeometry(0.4, 0.5, 0.3)), regMat(new THREE.MeshStandardMaterial({ color: "#2980b9" })));
+        mechTorso.position.set(0, 0.6, 1.6);
+        garageGroup.add(mechTorso);
+        const mechHead = new THREE.Mesh(regGeo(new THREE.SphereGeometry(0.15, 8, 8)), skinMat);
+        mechHead.position.set(0, 1.0, 1.6);
+        garageGroup.add(mechHead);
+
+        garageGroup.position.set(-ROAD_WIDTH / 2 - 4.5, 0, -8);
+        segGroup.add(garageGroup);
+      } else {
+        // 4. হাইওয়ে ও বাইপাস সাইনবোর্ড (80s Highway & Bypass Junction Sign)
+        const bypassGroup = new THREE.Group();
+        const pLeft = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.12, 0.12, 4.5, 8)), concreteMat);
+        pLeft.position.set(-3, 2.25, 0);
+        bypassGroup.add(pLeft);
+        const pRight = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.12, 0.12, 4.5, 8)), concreteMat);
+        pRight.position.set(3, 2.25, 0);
+        bypassGroup.add(pRight);
+        const bigOverheadSign = new THREE.Mesh(regGeo(new THREE.BoxGeometry(6.6, 1.3, 0.15)), bypassSignMat);
+        bigOverheadSign.position.set(0, 4.2, 0);
+        bypassGroup.add(bigOverheadSign);
+
+        // Highway bypass branch road strip heading sideways
+        const branchRoad = new THREE.Mesh(regGeo(new THREE.PlaneGeometry(12, 10)), roadMat);
+        branchRoad.rotateX(-Math.PI / 2);
+        branchRoad.position.set(ROAD_WIDTH / 2 + 5, 0.015, 0);
+        branchRoad.receiveShadow = true;
+        bypassGroup.add(branchRoad);
+
+        bypassGroup.position.set(0, 0, 0);
+        segGroup.add(bypassGroup);
+      }
+
+      // Wide green grass fields
       const grassMat = regMat(new THREE.MeshStandardMaterial({ color: "#6aaa44", roughness: 1.0 }));
       const grassGeo = regGeo(new THREE.PlaneGeometry(60, SEGMENT_LENGTH));
       grassGeo.rotateX(-Math.PI / 2);
@@ -971,24 +1094,25 @@ export default function CNGGameCanvas() {
       // Update Seated Passenger inside CNG back cage
       passengerGroup.visible = !!store.currentPassenger;
 
-      // 1. Acceleration & Speed Physics
-      const maxSpeed = store.isNitroActive ? 85 : 62;
-      const accel = store.isNitroActive ? 32 : 18;
-      const decel = 24;
+      // 1. Acceleration & Speed Physics (Realistic 1980s Two-Stroke Baby Taxi: Slow & Steady)
+      // Genuine 80s baby taxis topped out at ~42 km/h, with gentle, steady acceleration
+      const maxSpeed = store.isNitroActive ? 52 : 38;
+      const accel = store.isNitroActive ? 18 : 10;
+      const decel = 16;
 
       if (keys.forward) {
         currentSpeed = Math.min(maxSpeed, currentSpeed + accel * dt);
       } else if (keys.backward) {
-        currentSpeed = Math.max(-15, currentSpeed - decel * dt);
+        currentSpeed = Math.max(-10, currentSpeed - decel * dt);
       } else {
-        currentSpeed = Math.max(0, currentSpeed - decel * 0.4 * dt);
+        currentSpeed = Math.max(0, currentSpeed - decel * 0.45 * dt);
       }
 
-      // Engine audio feedback
-      cngAudio.setEngineState(currentSpeed / 65, keys.forward);
+      // Engine audio feedback calibrated for slow-and-steady two-stroke chug
+      cngAudio.setEngineState(currentSpeed / 42, keys.forward);
 
-      // 2. Steering & Drifts (Screen-Accurate)
-      const steerSpeed = keys.drift ? 16 : 11;
+      // 2. Steering & Drifts (Steady, grounded 3-wheeler handling)
+      const steerSpeed = keys.drift ? 11 : 7.5;
       if (keys.left) {
         // Move towards Screen Left (+X)
         turnSteer = Math.min(1, turnSteer + steerSpeed * dt);
@@ -996,12 +1120,12 @@ export default function CNGGameCanvas() {
         // Move towards Screen Right (-X)
         turnSteer = Math.max(-1, turnSteer - steerSpeed * dt);
       } else {
-        turnSteer *= Math.max(0, 1 - 12 * dt);
+        turnSteer *= Math.max(0, 1 - 10 * dt);
       }
 
-      // Responsive steering even when stopped or in traffic!
-      const speedSteerFactor = Math.max(0.75, Math.min(1.25, Math.abs(currentSpeed) / 18));
-      const lateralMovement = turnSteer * speedSteerFactor * 12 * dt;
+      // Smooth, steady steering proportional to realistic baby taxi speeds
+      const speedSteerFactor = Math.max(0.65, Math.min(1.1, Math.abs(currentSpeed) / 14));
+      const lateralMovement = turnSteer * speedSteerFactor * 8.5 * dt;
 
       // Full road access across the 18m road
       const maxRoadOffset = ROAD_WIDTH / 2 - 1.4; // 18 / 2 - 1.4 = 7.6m
@@ -1011,28 +1135,27 @@ export default function CNGGameCanvas() {
         maxRoadOffset
       );
 
-      // Footpath curb impact / crash check
+      // Road shoulder bump check
       if (
         Math.abs(playerPos.x) >= maxRoadOffset - 0.05 &&
-        Math.abs(currentSpeed) > 28 &&
+        Math.abs(currentSpeed) > 18 &&
         collisionCooldown <= 0
       ) {
         cngAudio.crash();
-        cngAudio.yell();
         collisionCooldown = 1.0;
-        crashShake = 0.45;
-        currentSpeed = -6;
-        spinRecoil = (playerPos.x > 0 ? -1 : 1) * 0.6;
-        store.recordCrash(90, "⚠️ ফুটপাতে ধাক্কা! বাম্পার ক্ষতিগ্রস্ত (-৳ ৯০)!");
+        crashShake = 0.35;
+        currentSpeed = -4;
+        spinRecoil = (playerPos.x > 0 ? -1 : 1) * 0.4;
+        store.recordCrash(15, "⚠️ রাস্তার কাঁচা কাঁধে চাকা নেমে গেছে! গতি মন্থর করুন (-৳ ১৫)");
       }
 
-      // Tilt CNG on turn (tilt into turn)
-      tiltAngle = THREE.MathUtils.lerp(tiltAngle, turnSteer * 0.16, 0.15);
+      // Tilt Baby Taxi on turns (classic 3-wheeler lean)
+      tiltAngle = THREE.MathUtils.lerp(tiltAngle, turnSteer * 0.12, 0.12);
 
-      // Update Player Mesh (turn steering nose towards direction of travel + spin recoil)
+      // Update Player Mesh (slight nose steering angle + gentle recoil)
       spinRecoil *= Math.max(0, 1 - 7 * dt);
       cngGroup.position.set(playerPos.x, playerPos.y, 0);
-      cngGroup.rotation.y = turnSteer * 0.22 + spinRecoil;
+      cngGroup.rotation.y = turnSteer * 0.16 + spinRecoil;
       cngGroup.rotation.z = -tiltAngle;
 
       // Rotate wheels with speed
@@ -1040,17 +1163,24 @@ export default function CNGGameCanvas() {
       rearLeftWheel.rotation.x += (currentSpeed * dt) / 0.35;
       rearRightWheel.rotation.x += (currentSpeed * dt) / 0.35;
 
-      // 3. Move Road & Infinite Progression
+      // 3. Move Road, Highway Curves & Infinite Progression
       const worldTravelDelta = (currentSpeed * 1000 * dt) / 3600;
       store.advanceDistance(dt);
       store.setSpeed(currentSpeed);
       store.checkChaseTick(dt);
 
-      roadSegments.forEach((seg) => {
+      const totalDist = store.distanceTraveledMeters;
+      roadSegments.forEach((seg, sIdx) => {
         seg.position.z -= worldTravelDelta;
         if (seg.position.z < -SEGMENT_LENGTH) {
           seg.position.z += ROAD_SEGMENTS * SEGMENT_LENGTH;
         }
+
+        // Gentle 80s Highway & Bypass Curves (not a dead-straight ruler road)
+        // Subtly bends the road segments ahead based on journey progression
+        const curvePhase = (totalDist + seg.position.z) * 0.004 + sIdx * 0.15;
+        seg.position.x = Math.sin(curvePhase) * 2.8;
+        seg.rotation.y = Math.cos(curvePhase) * 0.045;
       });
 
       // 4. Update Footpath Pedestrians (Walk animations & progression)

@@ -40,11 +40,15 @@ export default function StartScreenModal() {
           <p className="font-bold text-amber-300 text-sm mb-1">কীভাবে খেলবেন:</p>
           <div className="flex items-start gap-2.5">
             <span className="text-base">🚖</span>
-            <p><strong>যাত্রী তুলুন:</strong> ফার্মগেট সিনেমা হল, নিউ মার্কেট, কার্জন হল, মতিঝিল ও সদরঘাটের সম্মানিত যাত্রীদের সঠিক সময়ে নামিয়ে দিন।</p>
+            <p><strong>বাস্তবধর্মী বেবিট্যাক্সি গতি:</strong> আশির দশকের দুই স্ট্রোক বেবিট্যাক্সি চলত শান্ত, ধীর ও নির্ভরযোগ্য গতিতে (৩০-৪০ কিমি/ঘণ্টা)। হাইওয়ে ও বাইপাস মোড় সাবধানে পার হন।</p>
+          </div>
+          <div className="flex items-start gap-2.5">
+            <span className="text-base">🏬</span>
+            <p><strong>স্টপেজ, দোকান ও গ্যারেজ:</strong> রাস্তার পাশে টং চায়ের দোকান, পেট্রোল পাম্প ও যাত্রী ছাউনির স্টপেজে নেমে আসা যাত্রীদের সেবা দিন।</p>
           </div>
           <div className="flex items-start gap-2.5">
             <span className="text-base">🚌</span>
-            <p><strong>আশির দশকের ট্রাফিক:</strong> ভিন্টেজ কাঠের বডির বাস, ঐতিহ্যবাহী রিকশা ও টেম্পোর ভিড় সামলে সতর্কভাবে ড্রাইভ করুন।</p>
+            <p><strong>আশির দশকের ট্রাফিক:</strong> ভিন্টেজ কাঠের বডির বাস, ঐতিহ্যবাহী রিকশা আর্টের রিকশা ও টেম্পোর ভিড় সামলে সতর্কভাবে ড্রাইভ করুন।</p>
           </div>
           <div className="flex items-start gap-2.5">
             <span className="text-base">👮</span>
