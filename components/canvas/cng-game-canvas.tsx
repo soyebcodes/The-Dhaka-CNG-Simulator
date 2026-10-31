@@ -388,16 +388,6 @@ export default function CNGGameCanvas() {
       speed: number;
       width: number;
       length: number;
-      // Fly-away crash physics (special for battery_rickshaw / Dhaka Tesla)
-      isFlying?: boolean;
-      flyVelX?: number;
-      flyVelY?: number;
-      flyVelZ?: number;
-      flyRotX?: number;
-      flyRotY?: number;
-      flyRotZ?: number;
-      flyTimer?: number;
-      hasCrashLanded?: boolean;
     }
 
     const trafficList: SimTraffic[] = [];
@@ -715,16 +705,47 @@ export default function CNGGameCanvas() {
         speed = 14;
         const hoodMat = regMat(
           new THREE.MeshStandardMaterial({
-            color: Math.random() > 0.5 ? "#e74c3c" : "#f1c40f",
+            color: Math.random() > 0.5 ? "#c0392b" : "#d4ac0d",
           })
         );
         const seat = new THREE.Mesh(regGeo(new THREE.BoxGeometry(1, 0.4, 0.8)), hoodMat);
         seat.position.y = 0.6;
         group.add(seat);
+
+        // Canopy Hood
         const hood = new THREE.Mesh(regGeo(new THREE.CylinderGeometry(0.55, 0.55, 0.9, 8)), hoodMat);
         hood.rotation.z = Math.PI / 2;
         hood.position.set(0, 1.2, -0.1);
         group.add(hood);
+
+        // === 80s Dhaka Rickshaw Hand-Painted Back Art Panel (সিনেমা পোস্টার / ঐতিহ্যবাহী রিকশা আর্ট) ===
+        const rkBannerTex = createRickshawBannerTexture(rickshawBannerCounter++);
+        const rkBannerMat = regMat(new THREE.MeshBasicMaterial({ map: rkBannerTex, side: THREE.FrontSide }));
+        const rkBannerGeo = regGeo(new THREE.PlaneGeometry(0.95, 0.75));
+        const rkBannerMesh = new THREE.Mesh(rkBannerGeo, rkBannerMat);
+        rkBannerMesh.position.set(0, 1.18, 0.42); // back face of rickshaw hood, facing camera
+        rkBannerMesh.rotation.y = Math.PI;
+        group.add(rkBannerMesh);
+
+        // Tin Plate Frame & Gold Trim around Rickshaw Art
+        const frameTrimMat = regMat(new THREE.MeshBasicMaterial({ color: "#d4ac0d" }));
+        const fTrimGeo = regGeo(new THREE.BoxGeometry(1.0, 0.04, 0.03));
+        const fTop = new THREE.Mesh(fTrimGeo, frameTrimMat);
+        fTop.position.set(0, 1.57, 0.41);
+        group.add(fTop);
+        const fBot = new THREE.Mesh(fTrimGeo, frameTrimMat);
+        fBot.position.set(0, 0.79, 0.41);
+        group.add(fBot);
+
+        // Side tassels / decorative plastic bells (ঝালর)
+        const tassels = ["#e74c3c", "#f1c40f", "#27ae60", "#2980b9"];
+        tassels.forEach((col, ti) => {
+          const tMat = regMat(new THREE.MeshBasicMaterial({ color: col }));
+          const tGeo = regGeo(new THREE.BoxGeometry(0.04, 0.16, 0.02));
+          const tMesh = new THREE.Mesh(tGeo, tMat);
+          tMesh.position.set(-0.38 + ti * 0.25, 0.7, 0.41);
+          group.add(tMesh);
+        });
       } else if (type === "bike") {
         width = 0.9;
         length = 2;
@@ -1061,63 +1082,8 @@ export default function CNGGameCanvas() {
       }
 
       trafficList.forEach((tr) => {
-        // --- 0. Tesla Flying & Tumbling Launch Animation ---
-        if (tr.isFlying) {
-          const gravity = 22;
-          tr.flyVelY = (tr.flyVelY ?? 0) - gravity * dt;
-          tr.flyTimer = (tr.flyTimer ?? 0) + dt;
-          tr.laneX += (tr.flyVelX ?? 0) * dt;
-          tr.z += (tr.flyVelZ ?? 0) * dt;
-
-          tr.flyRotX = (tr.flyRotX ?? 0) + 7.5 * dt; // violent front flip
-          tr.flyRotZ = (tr.flyRotZ ?? 0) + 9.0 * dt; // wild barrel roll
-          tr.flyRotY = (tr.flyRotY ?? 0) + 4.0 * dt; // spin
-
-          const currentY = tr.mesh.position.y;
-          const nextY = Math.max(0, currentY + (tr.flyVelY ?? 0) * dt);
-
-          tr.mesh.position.set(tr.laneX, nextY, tr.z);
-          tr.mesh.rotation.set(tr.flyRotX, tr.flyRotY, tr.flyRotZ);
-
-          // Hard crash impact with ground
-          if (nextY <= 0.05 && (tr.flyTimer ?? 0) > 0.25 && !tr.hasCrashLanded) {
-            tr.hasCrashLanded = true;
-            tr.flyVelY = Math.abs(tr.flyVelY ?? 0) * 0.45; // bounce up
-            tr.flyVelX = (tr.flyVelX ?? 0) * 0.35;
-            tr.flyVelZ = (tr.flyVelZ ?? 0) * 0.35;
-            crashShake = 0.4;
-            cngAudio.crash();
-          }
-
-          // Despawn & respawn far ahead after airborne crash spectacle
-          if ((tr.flyTimer ?? 0) > 3.2) {
-            tr.isFlying = false;
-            tr.hasCrashLanded = false;
-            tr.flyTimer = 0;
-            tr.flyVelX = 0;
-            tr.flyVelY = 0;
-            tr.flyVelZ = 0;
-            tr.flyRotX = 0;
-            tr.flyRotY = 0;
-            tr.flyRotZ = 0;
-            tr.mesh.rotation.set(0, 0, 0);
-            tr.z = 240 + Math.random() * 80;
-            const lanes = [-6.0, -2.2, 2.2, 6.0];
-            tr.laneX = lanes[Math.floor(Math.random() * lanes.length)];
-            tr.mesh.position.set(tr.laneX, 0, tr.z);
-          }
-
-          return; // Skip standard driving collision while in flight
-        }
-
         // Traffic moves forward relative to road
         const trRelativeSpeed = tr.speed - currentSpeed;
-        // Battery rickshaws (Dhaka Tesla) weave slightly erratically
-        if (tr.type === "battery_rickshaw") {
-          tr.laneX += Math.sin(time * 0.003 + tr.mesh.id) * 0.012;
-          tr.laneX = THREE.MathUtils.clamp(tr.laneX, -6.5, 6.5);
-        }
-
         tr.z += (trRelativeSpeed * 1000 * dt) / 3600;
         tr.mesh.position.set(tr.laneX, 0, tr.z);
 
@@ -1130,7 +1096,7 @@ export default function CNGGameCanvas() {
           tr.z = 80 + Math.random() * 80;
         }
 
-        // Realistic Crash with Traffic Vehicle
+        // Realistic Road Crash with Traffic Vehicle (Classic 80s collision)
         const dx = Math.abs(playerPos.x - tr.mesh.position.x);
         const dz = tr.z - 0;
         if (
@@ -1142,44 +1108,30 @@ export default function CNGGameCanvas() {
           cngAudio.crash();
           cngAudio.yell();
           collisionCooldown = 0.8; // Cooldown to prevent lock
-          crashShake = 0.65; // Camera shake
-          spinRecoil = (playerPos.x > tr.mesh.position.x ? 1 : -1) * 0.85; // Spin & skid!
+          crashShake = 0.5; // Camera shake
+          spinRecoil = (playerPos.x > tr.mesh.position.x ? 1 : -1) * 0.7; // Skid recoil
           const speedBefore = currentSpeed;
-          currentSpeed = -6; // Bounce backwards!
-          playerPos.x += playerPos.x > tr.mesh.position.x ? 1.5 : -1.5;
+          currentSpeed = -5; // Bounce back
+          playerPos.x += playerPos.x > tr.mesh.position.x ? 1.4 : -1.4;
           playerPos.x = THREE.MathUtils.clamp(playerPos.x, -maxRoadOffset, maxRoadOffset);
 
-          let penalty = speedBefore > 38 ? 35 : 15;
-          let crashMsg = `💥 মৃদু ধাক্কা! সামনের গাড়ির বাতি ক্ষতিগ্রস্ত (-৳ ${penalty})`;
+          let penalty = speedBefore > 38 ? 30 : 15;
+          let crashMsg = `💥 সামনের গাড়ির সাথে মৃদু ধাক্কা! সাইড মিরর মেরামত (-৳ ${penalty})`;
 
           if (tr.type === "battery_rickshaw") {
-            // High-flying 80s Tempo stunt launch
-            tr.isFlying = true;
-            tr.flyTimer = 0;
-            tr.hasCrashLanded = false;
-            const impactForce = Math.max(Math.abs(speedBefore), 28);
-            const sideDir = tr.mesh.position.x >= playerPos.x ? 1 : -1;
-            
-            tr.flyVelY = 14 + impactForce * 0.16;          // Upward trajectory
-            tr.flyVelX = sideDir * (7 + impactForce * 0.14); // Sideways into grass
-            tr.flyVelZ = 12 + impactForce * 0.28;          // Forward down the avenue
-            tr.flyRotX = Math.random() * 2;
-            tr.flyRotY = Math.random() * 2;
-            tr.flyRotZ = Math.random() * 2;
-
-            penalty = 0; // Stunt bonus
-            crashMsg = `🚖 আশির দশকের টেম্পো ডিগবাজি খেয়েছে! সড়কের পাশে দর্শকরা হাততালি দিচ্ছেন!`;
-          } else if (tr.type === "bus") {
-            penalty = 40;
-            crashMsg = `💥 মুড়ির টিন বাসের পেছনে ধাক্কা! কনডাক্টর: "আস্তে চলেন ভাই!" (-৳ ${penalty})`;
-          } else if (tr.type === "bike") {
             penalty = 20;
-            crashMsg = `💥 মোটরসাইকেলের সাথে সংঘাত! সাইড মিরর ঠিক করতে খরচ (-৳ ${penalty})`;
-          } else if (tr.type === "car") {
+            crashMsg = `💥 টেম্পোর সাথে সংঘর্ষ! টেম্পোচালক: "সাবধানে চালান ভাই!" (-৳ ${penalty})`;
+          } else if (tr.type === "bus") {
             penalty = 35;
-            crashMsg = `💥 টয়োটা করোলা গাড়ির সাথে সংঘর্ষ! বাতি ক্ষতিগ্রস্ত (-৳ ${penalty})`;
-          } else if (tr.type === "rickshaw") {
+            crashMsg = `💥 মুড়ির টিন বাসের পেছনে ধাক্কা! কনডাক্টর হাত নাড়ালেন (-৳ ${penalty})`;
+          } else if (tr.type === "bike") {
             penalty = 15;
+            crashMsg = `💥 মোটরসাইকেলের সাথে সংঘাত! বাতি মেরামত খরচ (-৳ ${penalty})`;
+          } else if (tr.type === "car") {
+            penalty = 30;
+            crashMsg = `💥 টয়োটা করোলা গাড়ির পেছনে ধাক্কা! বাম্পার ক্ষতিগ্রস্ত (-৳ ${penalty})`;
+          } else if (tr.type === "rickshaw") {
+            penalty = 12;
             crashMsg = `💥 কাঠের রিকশায় হালকা ধাক্কা! রিকশাচালক হাত তুলে সংকেত দিলেন (-৳ ${penalty})`;
           }
 
